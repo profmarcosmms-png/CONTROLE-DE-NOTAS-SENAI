@@ -364,6 +364,7 @@ td.mask{color:var(--ink-2);letter-spacing:.18em;text-align:center;user-select:no
     <label class="chk"><input type="checkbox" id="onlyPend"> Só quem tem pendência</label>
     <span class="grow"></span>
     <button class="btn primary" id="btnImp" type="button">Importar PDF</button>
+    <button class="btn" id="btnEditTurma" type="button">Editar turma</button>
     <button class="btn" id="btnAddStu" type="button">Adicionar alunos</button>
     <button class="btn" id="btnPdf" type="button">Imprimir / PDF</button>
     <button class="btn primary" id="btnNewTask" type="button">Nova tarefa</button>
@@ -423,14 +424,21 @@ var RAW = [
   {id:'c276439', codigo:'276439', inicio:'2026-02-02', alunos:[]},
   {id:'c276432', codigo:'276432', inicio:'2025-09-01', alunos:[]}
 ];
+/* Disciplinas previstas além de Cálculo: ficam como “vagas” até a turma ser importada (o código vem do PDF) */
+function vagasUC(){
+  return [
+    {id:'v-fisica-pq', codigo:'a definir', curso:'Tecnologia em Processos Químicos', componente:'Física', inicio:'', alunos:[]},
+    {id:'v-fisica-aplicada-ai', codigo:'a definir', curso:'Automação Industrial', componente:'Física Aplicada', inicio:'', alunos:[]}
+  ];
+}
 function seedState(){
   return {
-    v:5, ui:{turma:RAW[0].id,curso:'Tecnologia em Processos Químicos',vista:'ambas'}, cursos:['Tecnologia em Processos Químicos','Automação Industrial','Automação Industrial 1ºP'], tarefas:[], registros:{}, aval:{}, aulas:{}, cfg:{regraMF:'rec-menor',mfComb:'media',descontoAtraso:20,escala:100,somaSimples:true,listas25:true,reorg:''},
+    v:5, ui:{turma:RAW[0].id,curso:'Tecnologia em Processos Químicos',vista:'ambas'}, cursos:['Tecnologia em Processos Químicos','Automação Industrial','Automação Industrial 1ºP'], tarefas:[], registros:{}, aval:{}, aulas:{}, cfg:{regraMF:'rec-menor',mfComb:'media',descontoAtraso:20,escala:100,somaSimples:true,listas25:true,reorg:'',ucsBase:true},
     turmas: RAW.map(function(t){
       return {id:t.id, codigo:t.codigo, curso:'Tecnologia em Processos Químicos', componente:'Cálculo', inicio:t.inicio, alunos:t.alunos.map(function(a){
         return {id:'a'+a[0], matricula:a[0], nome:titleCase(a[1]), email:a[2]};
       })};
-    })
+    }).concat(vagasUC())
   };
 }
 
@@ -569,6 +577,13 @@ function normalize(s){
   }
   /* cursos e turmas */
   s.turmas.forEach(function(t){ if(!t.curso) t.curso='Tecnologia em Processos Químicos'; if(!t.componente) t.componente='Cálculo'; });
+  if(!s.cfg.ucsBase){
+    vagasUC().forEach(function(v){
+      var ja=s.turmas.some(function(t){ return t.curso===v.curso && norm(t.componente).trim()===norm(v.componente).trim(); });
+      if(!ja) s.turmas.push(v);
+    });
+    s.cfg.ucsBase=true;
+  }
   s.cursos=Array.isArray(s.cursos) ? s.cursos : [];
   ['Tecnologia em Processos Químicos','Automação Industrial','Automação Industrial 1ºP'].forEach(function(n){ if(s.cursos.indexOf(n)<0) s.cursos.push(n); });
   s.turmas.forEach(function(t){ if(s.cursos.indexOf(t.curso)<0) s.cursos.push(t.curso); });
@@ -713,7 +728,7 @@ function renderTabs(){
     box.append(h('button',{type:'button',class:'tab','aria-pressed':String(c && t.id===c.id),
       onclick:function(){ state.ui.turma=t.id; persist(); render(); }},
       h('div',{class:'t1',text:tName(t)}),
-      h('div',{class:'t2',text:n?(n+' '+plural(n,'aluno','alunos')+(t.inicio?', início em '+fmtDate(t.inicio):'')):'sem alunos, vaga livre'})));
+      h('div',{class:'t2',text:n?(n+' '+plural(n,'aluno','alunos')+(t.inicio?', início em '+fmtDate(t.inicio):'')):(isVagaPrev(t)?'aguardando o PDF da turma':'sem alunos, vaga livre')})));
   });
 }
 function renderHead(){
@@ -724,7 +739,7 @@ function renderHead(){
   else if(c && c.codigo==='276439' || c && c.codigo==='276432') sub+=', Módulo 02';
   if(c) sub=(c.componente||'Cálculo')+', '+sub;
   $('#subT').textContent=sub;
-  ['#btnAddStu','#btnPdf','#btnNewTask'].forEach(function(s){ $(s).disabled=!c; });
+  ['#btnEditTurma','#btnAddStu','#btnPdf','#btnNewTask'].forEach(function(s){ $(s).disabled=!c; });
   document.title='Controle de Notas, '+(state.ui.curso||'')+' — Prof. Marcos Monteiro dos Santos';
 }
 function visEtapas(){ var v=state.ui.vista; return v==='1'?[1]:(v==='2'?[2]:[1,2]); }
@@ -944,7 +959,9 @@ function renderGrid(){
       h('button',{type:'button',class:'btn primary',onclick:function(){openTask(null,vis[0]);},text:'Criar primeira tarefa'})));
   }
   if(!c.alunos.length){
-    wrap.append(h('div',{class:'empty'},h('strong',{text:'Esta turma está sem alunos: a vaga está livre. '}),'Use “Importar PDF” para colocar a nova turma neste lugar, ou “Adicionar alunos” e cole a lista.'));
+    wrap.append(isVagaPrev(c)
+      ? h('div',{class:'empty'},h('strong',{text:'Esta vaga é de '+(c.componente||'')+' e ainda não tem turma. '}),'Use “Importar PDF” com a listagem da turma (o código e os nomes entram sozinhos), ou “Editar turma” para informar o código e depois “Adicionar alunos”.')
+      : h('div',{class:'empty'},h('strong',{text:'Esta turma está sem alunos: a vaga está livre. '}),'Use “Importar PDF” para colocar a nova turma neste lugar, ou “Adicionar alunos” e cole a lista.'));
     wrap.scrollLeft=sl; wrap.scrollTop=stp; return;
   }
 
@@ -1595,7 +1612,8 @@ function tituloCurso(s){
   }).join(' ');
 }
 function isoFromBr(s){ var m=/^(\d\d)\/(\d\d)\/(\d{4})$/.exec(s||''); return m ? m[3]+'-'+m[2]+'-'+m[1] : ''; }
-function tName(c){ return (c.componente||'Cálculo')+' '+c.codigo; }
+function tName(c){ return (c.componente||'Cálculo')+(c.codigo?' '+c.codigo:''); }
+function isVagaPrev(t){ return !!t && t.codigo==='a definir'; }
 function slug(s){ return norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
 
 function loadPdfJs(){
@@ -1694,6 +1712,26 @@ function parseListagem(pages){
 function findTurma(curso,codigo){
   return state.turmas.filter(function(t){ return t.codigo===codigo && t.curso===curso; })[0]||null;
 }
+function sameComp(a,b){ return norm(a).trim()===norm(b).trim(); }
+function vagasDe(curso){ return state.turmas.filter(function(x){ return x.alunos.length===0 && x.curso===curso; }); }
+/* vaga a ocupar por padrão: só uma vaga da MESMA disciplina, para nunca trocar Cálculo por Física sem querer */
+function vagaPadrao(curso,comp){ var v=vagasDe(curso).filter(function(x){ return sameComp(x.componente,comp); })[0]; return v ? v.id : ''; }
+/* turma da qual copiar as tarefas por padrão: só de outra turma da mesma disciplina */
+function modeloPadrao(comp){
+  var cur=curTurma(), ms=state.turmas.filter(function(t){ return tasksOf(t.id).length>0 && sameComp(t.componente,comp); });
+  if(!ms.length) return '';
+  return (cur && ms.indexOf(cur)>=0) ? cur.id : ms[0].id;
+}
+function compPadrao(curso){
+  var cur=curTurma();
+  if(cur && cur.curso===curso && cur.componente) return cur.componente;
+  return /automa/.test(norm(curso)) ? 'Física Aplicada' : 'Cálculo';
+}
+function compsSugeridos(){
+  var l=['Cálculo','Física','Física Aplicada'];
+  state.turmas.forEach(function(t){ if(t.componente && !l.some(function(x){ return sameComp(x,t.componente); })) l.push(t.componente); });
+  return l;
+}
 function ensureCurso(nome){ if(state.cursos.indexOf(nome)<0) state.cursos.push(nome); }
 function newTurmaId(cod){
   var id='c'+cod;
@@ -1730,6 +1768,33 @@ function applyImport(card){
   state.ui.curso=curso; state.ui.turma=t.id; res.turma=t;
   return res;
 }
+function openEditTurma(){
+  var c=curTurma(); if(!c){ toast('Importe uma turma primeiro.'); return; }
+  var dlE=h('datalist',{id:'dlComps'},compsSugeridos().map(function(x){return h('option',{value:x});}));
+  var eComp=h('input',{type:'text',autocomplete:'off',value:c.componente||''}); eComp.setAttribute('list','dlComps');
+  var eCod=h('input',{type:'text',autocomplete:'off',value:isVagaPrev(c)?'':(c.codigo||''),placeholder:'Ex.: 276500'});
+  var eIni=h('input',{type:'date',value:c.inicio||''});
+  var err=h('p',{class:'err',role:'alert'});
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var co=eComp.value.trim(), cd=eCod.value.trim();
+    if(!co||!cd){ err.textContent='Preencha a disciplina e o código da turma.'; return; }
+    var dup=findTurma(c.curso,cd);
+    if(dup && dup!==c){ err.textContent='Já existe uma turma com esse código neste curso.'; return; }
+    c.componente=co; c.codigo=cd; c.inicio=eIni.value||'';
+    persist(); render(); closeDialog(); toast('Turma atualizada: '+tName(c)+'.');
+  }},
+    h('h2',{text:'Editar turma'}),
+    h('p',{class:'lead',text:c.curso}),
+    dlE,
+    h('div',{class:'imp-fields'},
+      h('div',{},h('label',{class:'f',text:'Disciplina'}),eComp),
+      h('div',{},h('label',{class:'f',text:'Código da turma'}),eCod),
+      h('div',{},h('label',{class:'f',text:'Início'}),eIni)),
+    err,
+    h('div',{class:'foot'},h('button',{type:'submit',class:'btn primary',text:'Salvar'}),h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form,'input:not([type=hidden])');
+}
 function criarTurmaVazia(curso,comp,cod){
   var t={id:newTurmaId(cod),codigo:cod,curso:curso,componente:comp||'Cálculo',inicio:'',alunos:[]};
   state.turmas.push(t); ensureCurso(curso);
@@ -1741,6 +1806,7 @@ function openImportPdf(){
   var cards=[], list=h('div',{class:'imp-list'});
   var err=h('p',{class:'err',role:'alert'});
   var dl=h('datalist',{id:'dlCursos'},state.cursos.map(function(c){return h('option',{value:c});}));
+  var dlc=h('datalist',{id:'dlComps'},compsSugeridos().map(function(c){return h('option',{value:c});}));
   var fileIn=h('input',{type:'file',id:'impFile',accept:'application/pdf,.pdf',multiple:true});
   var go=h('button',{type:'submit',class:'btn primary',text:'Importar',disabled:true});
 
@@ -1767,34 +1833,36 @@ function openImportPdf(){
     }
     card.curso=h('input',{type:'text',autocomplete:'off',value:parsed.curso||'',placeholder:'Ex.: Automação Industrial'});
     card.curso.setAttribute('list','dlCursos');
-    card.comp=h('input',{type:'text',autocomplete:'off',value:parsed.componente||'Cálculo'});
+    card.comp=h('input',{type:'text',autocomplete:'off',value:parsed.componente||compPadrao(parsed.curso||state.ui.curso)});
+    card.comp.setAttribute('list','dlComps');
     card.cod=h('input',{type:'text',autocomplete:'off',value:parsed.codigo||'',placeholder:'Código da turma'});
     card.dest=h('select',{'aria-label':'Onde colocar a turma'});
     card.destRow=h('div',{},h('label',{class:'f',text:'Onde colocar'}),card.dest);
     card.copy=h('select',{'aria-label':'Copiar as tarefas de'});
     card.copy.append(h('option',{value:'',text:'Não copiar tarefas'}));
-    var ms=modelos(), cur=curTurma(), pref=null;
+    var ms=modelos();
     ms.forEach(function(t){
       card.copy.append(h('option',{value:t.id,text:tName(t)+' ('+tasksOf(t.id).length+' '+plural(tasksOf(t.id).length,'tarefa','tarefas')+')'}));
-      if(!pref || (cur && t.id===cur.id)) pref=t.id;
     });
-    if(pref) card.copy.value=pref;
     card.info=h('p',{class:'meta'});
-    var firstUpd=true;
+    card.destTouched=false; card.copyTouched=false;
+    card.copy.addEventListener('change',function(){ card.copyTouched=true; upd(); });
     function upd(){
       var cur=card.curso.value.trim(), t=findTurma(cur,card.cod.value.trim());
-      var vs=t ? [] : state.turmas.filter(function(x){ return x.alunos.length===0 && x.curso===cur; });
+      var vs=t ? [] : vagasDe(cur);
       var keep=card.dest.value;
       card.dest.replaceChildren(h('option',{value:'',text:'Criar uma turma nova'}));
-      vs.forEach(function(x){ card.dest.append(h('option',{value:x.id,text:'Vaga livre: '+tName(x)+' (nomes e notas já apagados)'})); });
-      if(firstUpd){ card.dest.value=vs.length?vs[0].id:''; firstUpd=false; }
+      vs.forEach(function(x){ card.dest.append(h('option',{value:x.id,text:isVagaPrev(x)?'Vaga reservada: '+x.componente+' (ainda sem código)':'Vaga livre: '+tName(x)+' (nomes e notas já apagados)'})); });
+      /* enquanto a pessoa não escolhe, o padrão acompanha o curso e a disciplina digitados */
+      if(!card.destTouched) card.dest.value=vagaPadrao(cur,card.comp.value);
       else card.dest.value=vs.some(function(x){return x.id===keep;})?keep:'';
+      if(!card.copyTouched) card.copy.value=modeloPadrao(card.comp.value);
       card.destRow.hidden=!vs.length;
       var slot=!t && !!card.dest.value;
       card.info.textContent=t
         ? 'Já existe a turma '+tName(t)+': completo matrículas, e-mails e nomes, e incluo os alunos que faltam.'
         : (slot ? 'Vai ocupar a vaga livre: as tarefas continuam e a turma passa a ter o código, os nomes e os dados deste PDF.'
-                : 'Vai criar uma turma nova'+(pref?', com as mesmas tarefas da turma escolhida abaixo.':'.'));
+                : 'Vai criar uma turma nova'+(card.copy.value?', com as mesmas tarefas da turma escolhida abaixo.':'.'));
       card.copy.disabled=!!t||slot; card.copyRow.hidden=!!t||slot||!ms.length;
       refreshGo();
     }
@@ -1809,7 +1877,7 @@ function openImportPdf(){
       card.info, card.destRow, card.copyRow,
       h('details',{class:'imp-names'},h('summary',{text:'Ver os nomes'}),h('ul',{class:'mini-list'},nomes.map(function(n){return h('li',{text:n});}))));
     [card.curso,card.comp,card.cod].forEach(function(i){ i.addEventListener('input',upd); });
-    card.dest.addEventListener('change',upd);
+    card.dest.addEventListener('change',function(){ card.destTouched=true; upd(); });
     upd();
   }
   function valid1(card){ return card.parsed && card.parsed.alunos.length && card.curso && card.curso.value.trim() && card.cod.value.trim(); }
@@ -1822,8 +1890,8 @@ function openImportPdf(){
   });
 
   /* turma vazia, sem PDF */
-  var eCurso=h('input',{type:'text',autocomplete:'off',placeholder:'Curso'}), eComp=h('input',{type:'text',autocomplete:'off',value:'Cálculo'}), eCod=h('input',{type:'text',autocomplete:'off',placeholder:'Código'});
-  eCurso.setAttribute('list','dlCursos'); eCurso.value=state.ui.curso||'';
+  var eCurso=h('input',{type:'text',autocomplete:'off',placeholder:'Curso'}), eComp=h('input',{type:'text',autocomplete:'off',value:compPadrao(state.ui.curso)}), eCod=h('input',{type:'text',autocomplete:'off',placeholder:'Código'});
+  eCurso.setAttribute('list','dlCursos'); eCurso.value=state.ui.curso||''; eComp.setAttribute('list','dlComps');
   var vazia=h('details',{class:'imp-names'},h('summary',{text:'Sem PDF? Criar uma turma vazia'}),
     h('div',{class:'imp-fields'},
       h('div',{},h('label',{class:'f',text:'Curso'}),eCurso),
@@ -1850,7 +1918,7 @@ function openImportPdf(){
   }},
     h('h2',{text:'Importar PDF da listagem de alunos'}),
     h('p',{class:'lead',text:'Escolha o PDF do Portal do Docente (dá para escolher vários). Eu leio o curso, o componente, a turma e os nomes, organizo em ordem alfabética e monto a turma com as mesmas etapas, colunas e regras das outras.'}),
-    dl, h('label',{class:'f',htmlFor:'impFile',text:'Arquivo PDF'}), fileIn,
+    dl, dlc, h('label',{class:'f',htmlFor:'impFile',text:'Arquivo PDF'}), fileIn,
     list, err, vazia,
     h('div',{class:'foot'},go,h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
   openDialog(form,'#impFile',true);
@@ -1986,7 +2054,7 @@ function exportCsv(){
   var csv='\uFEFF'+rows.map(function(r){return r.map(csvCell).join(';');}).join('\r\n');
   saveAny('planilha-'+slug(c.componente||'turma')+'-'+c.codigo+'-'+todayISO()+'.csv',csv,'text/csv;charset=utf-8');
 }
-function exportJson(){ saveAny('backup-tarefas-calculo-'+todayISO()+'.json',JSON.stringify(state,null,1),'application/json'); }
+function exportJson(){ saveAny('backup-controle-notas-'+todayISO()+'.json',JSON.stringify(state,null,1),'application/json'); }
 
 function openRestore(data,fname){
   var nAl=data.turmas.reduce(function(s,t){return s+(t.alunos||[]).length;},0);
@@ -2028,6 +2096,10 @@ function metaOf(c){
   else {
     for(k in META_COMUM) m[k]=META_COMUM[k];
     var x=META[c.codigo]||{}; for(k in x) m[k]=x[k];
+    if(c.curso && norm(c.curso).indexOf('processos quimicos')<0){
+      /* turma de outro curso criada sem PDF: não usa o módulo, a etapa e o horário de Processos Químicos */
+      m.evento=String(c.curso).toUpperCase(); m.modulo=''; m.etapa=''; m.turma=''; m.horario=''; m.carga=''; m.termino='';
+    }
   }
   if(!m.evento) m.evento=m.modulo||'';
   return m;
@@ -2283,6 +2355,7 @@ $('#btnJson').addEventListener('click',exportJson);
 $('#btnRestore').addEventListener('click',function(){$('#fileIn').click();});
 $('#btnPdf').addEventListener('click',openPdf);
 $('#btnImp').addEventListener('click',openImportPdf);
+$('#btnEditTurma').addEventListener('click',openEditTurma);
 $('#btnReset').addEventListener('click',openReset);
 twoStep($('#btnUndoReset'),'Desfazer último reset','Confirmar: voltar ao estado de antes do reset',undoReset);
 $('#btnConf').addEventListener('click',function(){ state.ui.conf=!state.ui.conf; closeDialog(); persist(); render(); toast(state.ui.conf?'Modo confidencial ligado. Notas ocultas.':'Modo confidencial desligado.'); });
