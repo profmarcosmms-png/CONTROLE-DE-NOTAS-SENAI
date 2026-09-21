@@ -1,0 +1,2650 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Notas — Prof. Marcos Monteiro dos Santos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F8FC; --surface:#FFFFFF; --surface-2:#FAFBFE; --ink:#26355C; --ink-2:#6A7796;
+  --line:#E2E8F3; --blue:#4A73C9; --on-blue:#FFFFFF; --blue-soft:#EAF0FC; --orange:#F7B27D;
+  --ok-bg:#E8F6EF; --ok-fg:#23745A; --late-bg:#FFF6DC; --late-fg:#8A6100;
+  --no-bg:#FDECEC; --no-fg:#B03A3A; --over-bg:#FFF6EE; --over-fg:#B5581C;
+  --focus:#4A73C9; --shadow:0 1px 2px rgba(38,53,92,.05);
+  --blue-tint:#F6F9FE; --warm-tint:#FFF9F2; --warm-soft:#FFEEDC;
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 20px 48px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 14px;display:flex}
+.brand img{height:38px;width:auto;display:block}
+.who{text-align:right;font-weight:600}
+.who span{display:block;font-weight:400;color:var(--ink-2);font-size:14px}
+h1{margin:22px 0 2px;font-weight:800;font-style:italic;font-size:clamp(32px,5.5vw,52px);line-height:1.05;letter-spacing:-.02em;color:var(--blue)}
+.sub{margin:0 0 20px;color:var(--ink-2)}
+
+.banner{margin:14px 0 0;padding:10px 14px;border-radius:10px;background:var(--over-bg);color:var(--over-fg);border:1px solid var(--orange);font-size:14px}
+
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.tab{cursor:pointer;text-align:left;background:var(--surface);border:1px solid var(--line);border-bottom-width:3px;border-radius:12px;padding:10px 16px;min-width:210px}
+.tab .t1{font-weight:700}
+.tab .t2{font-size:13px;color:var(--ink-2)}
+.tab[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);border-bottom-color:var(--orange)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:16px;box-shadow:var(--shadow)}
+.stat{padding:12px 16px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat .k{font-size:13px;color:var(--ink-2)}
+.stat .v{font-size:26px;font-weight:700;line-height:1.2}
+.stat .v small{font-size:14px;font-weight:500;color:var(--ink-2);margin-left:6px}
+.stat.warn .v{color:var(--over-fg)}
+@media (max-width:720px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(3){border-left:0}
+  .stat:nth-child(n+3){border-top:1px solid var(--line)}
+}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+.toolbar .grow{flex:1}
+.search input{width:min(320px,80vw);padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.chk{display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--blue)}
+.btn{cursor:pointer;padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.danger{color:var(--no-fg)}
+.btn.danger.armed{background:var(--no-bg);border-color:var(--no-fg)}
+
+.grid-wrap{overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th,td{padding:0;text-align:left;vertical-align:middle}
+thead th{vertical-align:bottom;border-bottom:2px solid var(--line);background:var(--surface-2);padding:10px 10px}
+th.aluno,td.aluno{position:sticky;left:0;z-index:1;min-width:230px;max-width:280px;border-right:1px solid var(--line)}
+th.aluno{background:var(--surface-2);z-index:2;padding-left:14px}
+td.aluno{background:var(--surface);padding:6px 10px 6px 14px}
+tbody td{border-top:1px solid var(--line);padding:6px 8px}
+tbody tr:first-child td{border-top:0}
+tbody tr:hover td{background:var(--surface-2)}
+tbody tr:hover td.aluno{background:var(--surface-2)}
+th.task{min-width:172px}
+th.media,td.media{min-width:84px;text-align:right}
+td.media{font-weight:700;padding-right:14px}
+th.media{padding-right:14px}
+.stu{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;padding:4px 0;border-radius:6px}
+.stu .n{font-weight:600;display:block}
+.stu .m{font-size:12.5px;color:var(--ink-2)}
+.stu:hover .n{color:var(--blue);text-decoration:underline}
+.th-btn{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;padding:0;border-radius:6px}
+.th-btn .tt{font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.th-btn .dd{font-size:13px;color:var(--ink-2);font-weight:400}
+.th-btn .dd.over{color:var(--over-fg);font-weight:600}
+.th-btn:hover .tt{color:var(--blue);text-decoration:underline}
+.bar{height:5px;border-radius:3px;background:var(--line);margin:7px 0 3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue)}
+.th-btn .cnt{font-size:12.5px;color:var(--ink-2)}
+
+.cell{width:100%;min-height:40px;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;font-size:14px;font-weight:600;text-align:left}
+.cell .lbl{flex:1}
+.cell .nota{font-weight:700}
+.cell .ic{display:inline-flex}
+.cell:hover{filter:brightness(.97)}
+.s-entregue{background:var(--ok-bg);color:var(--ok-fg)}
+.s-atrasada{background:var(--late-bg);color:var(--late-fg)}
+.s-nao{background:var(--no-bg);color:var(--no-fg)}
+.s-pendente{background:transparent;color:var(--ink-2);border:1px dashed var(--line);font-weight:500}
+.s-vencida{background:var(--over-bg);color:var(--over-fg);border:1px solid var(--orange)}
+.empty{padding:22px 18px;color:var(--ink-2)}
+.empty strong{color:var(--ink)}
+.notice{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--blue-soft)}
+.notice p{margin:0;flex:1;min-width:220px}
+
+.data{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.data h2{margin:0 0 4px;font-size:18px}
+.data p{margin:0 0 12px;color:var(--ink-2);max-width:62ch}
+.data .row{display:flex;gap:10px;flex-wrap:wrap}
+
+dialog{border:1px solid var(--line);border-radius:16px;padding:0;width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 32px);background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(5,12,35,.35)}
+dialog::backdrop{background:rgba(8,16,40,.55)}
+.dlg{padding:20px 22px 20px}
+.dlg h2{margin:0;font-size:21px;line-height:1.25}
+.dlg .lead{margin:2px 0 14px;color:var(--ink-2);font-size:14.5px}
+.dlg label.f{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+.dlg input[type=text],.dlg input[type=date],.dlg input[type=number],.dlg input[type=email],.dlg textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.dlg textarea{resize:vertical;min-height:72px}
+.dlg .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dlg .err{color:var(--no-fg);font-size:14px;min-height:1.2em;margin:6px 0 0}
+.dlg .hint{color:var(--over-fg);font-size:13.5px;margin:8px 0 0}
+.dlg .foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.dlg .foot .grow{flex:1}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.opt{cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-weight:600;text-align:left}
+.opt[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue-soft)}
+.opt .ic{display:inline-flex}
+.opt.s-entregue .ic{color:var(--ok-fg)} .opt.s-atrasada .ic{color:var(--late-fg)} .opt.s-nao .ic{color:var(--no-fg)} .opt.s-pendente .ic{color:var(--ink-2)}
+.opt.s-entregue,.opt.s-atrasada,.opt.s-nao,.opt.s-pendente{color:var(--ink);background:var(--surface);border:2px solid var(--line);font-weight:600}
+.opt.s-entregue[aria-pressed="true"],.opt.s-atrasada[aria-pressed="true"],.opt.s-nao[aria-pressed="true"],.opt.s-pendente[aria-pressed="true"]{border-color:var(--blue)}
+.sect{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.sect h3{margin:0 0 6px;font-size:16px}
+.sect ul{margin:0 0 10px;padding-left:20px;columns:2;column-gap:20px;font-size:14.5px}
+.sect ul li{break-inside:avoid}
+.sect textarea{min-height:56px;font-size:13.5px}
+.mini{width:100%;border-collapse:collapse;font-size:14.5px}
+.mini td{border-top:1px solid var(--line);padding:4px 0}
+.mini tr:first-child td{border-top:0}
+.mini button{width:100%}
+.meta{font-size:13px;color:var(--ink-2);margin-top:10px}
+a{color:var(--blue)}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:10px;font-weight:600;font-size:14.5px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:calc(100vw - 32px)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){#toast{transition:none}}
+@media (max-width:560px){.dlg .two{grid-template-columns:1fr}.opts{grid-template-columns:1fr}.sect ul{columns:1}.who{text-align:left}}
+
+/* avaliações (1ª AVA, 2ª AVA, REC, MF) */
+th.avh{min-width:96px;text-align:center;background:var(--blue-soft)}
+th.avh .avt{display:block;font-weight:700}
+th.avh .avs{display:block;font-size:12px;font-weight:400;color:var(--ink-2)}
+th.avh.first,td.avc.first{border-left:2px solid var(--blue)}
+td.avc{background:var(--blue-tint);text-align:center}
+tbody tr:hover td.avc{background:var(--blue-soft)}
+td.mf{font-weight:800;font-size:16px}
+input.av{width:72px;padding:8px 6px;text-align:center;font-weight:600;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+input.av:focus{border-color:var(--blue)}
+input.av[aria-invalid="true"],.dlg input.nt[aria-invalid="true"]{border-color:var(--no-fg);background:var(--no-bg)}
+.stu .m.missing{color:var(--over-fg);font-weight:600}
+.mfnote{margin:10px 2px 0;color:var(--ink-2);font-size:14px}
+.linkbtn{background:none;border:0;color:var(--blue);text-decoration:underline;cursor:pointer;padding:0;font-weight:600}
+.rg{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer}
+.rg .d{display:block;font-size:14px;color:var(--ink-2)}
+.rg input{margin-top:4px;accent-color:var(--blue)}
+/* tela de lançamento de entregas e notas */
+dialog.wide{width:min(780px,calc(100vw - 24px))}
+.launch-scroll{max-height:min(50vh,470px);overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:12px}
+.launch{width:100%;border-collapse:separate;border-spacing:0}
+.launch th{position:sticky;top:0;background:var(--surface-2);font-size:13px;text-align:left;color:var(--ink-2);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--line)}
+.launch td{padding:5px 10px;border-top:1px solid var(--line)}
+.launch tbody tr:first-child td{border-top:0}
+.launch .n{font-weight:600}
+.launch .m{display:block;font-size:12.5px;color:var(--ink-2)}
+.launch select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.dlg input.nt{width:96px;text-align:center;font-weight:700}
+.dlg .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.dlg textarea.mailbox{margin-top:10px;font-size:13px;min-height:56px}
+.dlg .chk2{display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer}
+.dlg .chk2 input{width:18px;height:18px;accent-color:var(--blue)}
+
+/* nota livre, desconto por atraso e reorganização */
+th.lvh{min-width:100px;text-align:center;background:var(--warm-soft)}
+th.lvh .avt{display:block;font-weight:700}
+th.lvh .avs{display:block;font-size:12px;font-weight:400;color:var(--ink-2)}
+th.lvh.first,td.lvc.first{border-left:2px solid var(--orange)}
+td.lvc{background:var(--warm-tint);text-align:center}
+tbody tr:hover td.lvc{background:var(--warm-soft)}
+td.lvtot{font-weight:800;font-size:16px}
+.lvbtn{min-width:72px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
+.lvbtn:hover{border-color:var(--orange)}
+.dlg .sub3{margin:16px 0 4px;font-size:15px}
+.aulas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.aula label{display:block;font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:3px}
+.dlg .aula input{text-align:center;font-weight:600}
+.dlg input[aria-invalid="true"]{border-color:var(--no-fg);background:var(--no-bg)}
+.lv-total{margin:14px 0 0;padding:10px 12px;border-radius:10px;background:var(--warm-tint);border:1px solid var(--orange);font-size:14.5px}
+.launch .fintd{text-align:center;width:90px}
+.fin{font-weight:700}
+.fin.desc{color:var(--late-fg)}
+.mini-list{margin:6px 0 0;padding-left:18px;columns:2;column-gap:18px;font-size:14px;color:var(--ink)}
+.mini-list li{break-inside:avoid}
+@media (max-width:560px){.aulas{grid-template-columns:repeat(2,1fr)}.mini-list{columns:1}}
+
+/* nome do aluno com mais espaço e informações da etapa */
+th.aluno,td.aluno{min-width:260px;max-width:340px}
+.etp-info{margin-left:12px;font-size:12.5px;font-weight:400;color:var(--ink-2)}
+.etp-info.warn{color:var(--over-fg);font-weight:600}
+.banner.info{background:var(--blue-soft);color:var(--ink);border:1px solid var(--line)}
+/* etapas, colunas compactas e balão de registro */
+th.etp{text-align:left;padding:8px 12px;background:var(--blue-soft);border-bottom:1px solid var(--line);border-left:2px solid var(--line)}
+th.etp.e2{background:#F1F6FD}
+th.etp.fim{text-align:center;background:#DFEAFB}
+.etp-t{font-weight:700}
+.etp-add{margin-left:10px;font-size:13px}
+th.colh{text-align:center;padding:6px 5px;vertical-align:bottom;min-width:82px}
+th.colh .avt{display:block;font-weight:700;font-size:13px;line-height:1.2}
+th.colh .avs{display:block;font-size:11.5px;font-weight:400;color:var(--ink-2)}
+th.colh.lvh{background:var(--warm-soft);min-width:96px}
+th.colh.avh{background:var(--blue-soft)}
+th.colh.subh,th.colh.mdh{background:#E3ECFB}
+th.colh.mfh{background:#D6E4FA}
+th.colh.tcolh{background:var(--surface-2)}
+th.ebeg,td.ebeg{border-left:2px solid var(--line)}
+th.task{min-width:64px;max-width:104px;padding:8px 6px}
+.th-btn .tt{font-size:13px}
+.th-btn .dd{font-size:12px}
+td.tk{padding:4px 3px}
+.cell.cmp{min-height:34px;min-width:54px;padding:4px 8px;justify-content:center;gap:5px;font-size:13.5px}
+td.tcol,td.subc,td.mdc,td.mfc{text-align:center}
+td.tcol{font-weight:600}
+td.subc,td.mdc{font-weight:800;background:var(--blue-tint)}
+td.mfc{font-weight:800;font-size:16px;background:var(--blue-soft)}
+td.lvc{padding:6px 4px}
+.aulas5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:8px}
+@media (max-width:560px){.aulas5{grid-template-columns:repeat(3,1fr)}.top-right{align-items:flex-start}}
+.pop{position:fixed;z-index:60;width:min(340px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 36px rgba(38,53,92,.18)}
+.pop .dlg{padding:14px 16px}
+.pop .dlg h2{font-size:16px}
+.pop .dlg .lead{margin-bottom:10px;font-size:13.5px}
+.pop .dlg .foot{margin-top:12px}
+.pop .dlg textarea{min-height:52px}
+/* acesso, bloqueio e tela cheia */
+.top-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools .btn{padding:6px 12px;font-size:14px}
+html.fs .wrap{max-width:none}
+body.locked .wrap{display:none}
+.gate{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;gap:22px;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+.gate-name{margin:0;font-weight:700;font-size:15px;letter-spacing:.16em;color:var(--ink-2);text-align:center}
+.gate[hidden]{display:none}
+.gate-card{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px 24px;box-shadow:0 12px 40px rgba(38,53,92,.10);text-align:center}
+.gbrand{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.gbrand img{height:38px;width:auto;display:block}
+.gate-card h2{margin:16px 0 4px;font-size:22px}
+.gate-card p{margin:0 0 14px;color:var(--ink-2)}
+.gate-card input{width:100%;text-align:center;font-size:22px;letter-spacing:.35em;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.gate-card .gerr{min-height:1.3em;color:var(--no-fg);margin:8px 0 12px;font-size:14px}
+
+/* cabeçalho condensado: logo, título e subtítulo lado a lado */
+.top{gap:12px 24px}
+.top-left{display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-width:0}
+.titlebox{min-width:0}
+.titlebox h1{margin:0;font-size:clamp(24px,3.2vw,34px);line-height:1.1}
+.titlebox .sub{margin:3px 0 0;font-size:14px}
+.top{margin-bottom:16px}
+/* modo confidencial: três cores e legenda */
+td.mask{font-size:20px;line-height:1;letter-spacing:.12em;font-weight:700}
+td.mask.d-ok{color:#2E9E6B}
+td.mask.d-part{color:#DBA400}
+td.mask.d-none{color:#D9534F}
+td.mask.d-wait{color:#A3ABBE}
+.cf-ok{background:#CDEFDD;color:#1B6B50}
+.cf-part{background:#FFE9A6;color:#7A5300}
+.cf-none{background:#F8CACA;color:#A12E2E}
+.cf-wait{background:transparent;color:var(--ink-2);border:1px dashed var(--line)}
+.conf-legend{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin:0 0 10px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:14px}
+.conf-legend[hidden]{display:none}
+.conf-legend .lg{display:inline-flex;align-items:center;gap:8px}
+.sw{display:inline-flex;align-items:center;justify-content:center;width:28px;height:24px;border-radius:6px;border:1px solid transparent}
+.sw.cf-wait{border:1px dashed var(--line)}
+/* modo confidencial, linhas mais baixas e divisória entre os nomes */
+:root{--rowline:#A9AEB9}
+tbody td{padding-top:4px;padding-bottom:4px;border-top:1px solid var(--rowline)}
+td.aluno{padding:4px 10px 4px 14px}
+.stu{padding:2px 0}
+td.tk{padding:3px}
+td.lvc{padding:4px}
+.cell.cmp{min-height:30px;padding:3px 8px}
+.lvbtn{padding:5px 10px}
+input.av{padding:5px 6px}
+td.mask{color:var(--ink-2);letter-spacing:.18em;text-align:center;user-select:none}
+.tools .btn[aria-pressed="true"]{background:var(--warm-soft);border-color:var(--orange)}
+.confbar{margin:12px 0 0;padding:8px 14px;border-radius:10px;background:var(--warm-soft);border:1px solid var(--orange);font-size:14px}
+.confbar[hidden]{display:none}
+/* cursos, etapas na tela e importação de PDF */
+.cursos{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.curso{cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 16px;font-weight:600;color:var(--ink-2)}
+.curso:hover{border-color:var(--blue)}
+.curso[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.vista{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vista button{border:0;background:transparent;padding:8px 14px;cursor:pointer;font-weight:600;color:var(--ink-2)}
+.vista button+button{border-left:1px solid var(--line)}
+.vista button[aria-pressed="true"]{background:var(--blue-soft);color:var(--ink)}
+.impcard{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px;background:var(--surface-2)}
+.imp-fields{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px}
+.imp-names{margin-top:12px}
+.imp-names summary{cursor:pointer;font-weight:600;color:var(--blue)}
+.dlg input[type=file]{width:100%;padding:8px;border:1px dashed var(--line);border-radius:10px;background:var(--surface-2)}
+.dlg select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+@media (max-width:640px){.imp-fields{grid-template-columns:1fr}}
+
+/* nuvem */
+#btnCloud{display:inline-flex;align-items:center;gap:8px}
+#btnCloud .dot{width:9px;height:9px;border-radius:50%;background:var(--ink-2);flex:none}
+#btnCloud[data-st="ok"] .dot{background:var(--ok-fg)}
+#btnCloud[data-st="syncing"] .dot,#btnCloud[data-st="loading"] .dot{background:var(--blue)}
+#btnCloud[data-st="offline"] .dot{background:var(--late-fg)}
+#btnCloud[data-st="conflict"] .dot,#btnCloud[data-st="error"] .dot{background:var(--no-fg)}
+.dlg .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.dlg .cmp>div{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2)}
+.dlg .cmp h3{margin:0 0 4px;font-size:15px}
+.dlg .cmp p{margin:2px 0;font-size:14px;color:var(--ink-2)}
+@media (max-width:560px){.dlg .cmp{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="locked">
+<div class="wrap">
+  <div id="banner"></div>
+  <div class="confbar" id="confBar" role="status" hidden></div>
+  <header class="top">
+    <div class="top-left">
+      <div class="brand"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXcAAACGCAMAAAARpzrEAAAAwFBMVEX///8aS5/vXjHk6vMPRp0USJ5ff7kJRJwAQZsAP5oAO5nR1+cMRZzr8PfW3+94lcZ1jL/F0eZCZ6wAOJj72tTM0uTuURhpiL7z9vqvvttwhbn3+fwaTaAsVqQAPZrr7/eLocve5fE+YamfsNNQdLQvWab++PfuViOpt9aXqc5JcbO2xN6Bmsdbfbnxckr96+aRo8v85d/1moEAMJb5x7z71Mj2sJ/zhGPvWivyeVP4vrD2ppDwZTlEZKr1noe7y+Nv0uxqAAAQc0lEQVR4nO1da5eaOhsdCxEURcFacUDloh28daa3c3pOO8f//69evACB7EDoSNf7IfvTrDUkJJvkuSc+PEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhICMB1hquVoij7eYJ9kPy1Wq2GjuuKtb42XsXzK0xFSXtwxHq4I85TUTKcJ/GnRyAIVzGn0egYev3JZNlLsEz+6HtheJz5kWWYwcqpaO0E5n7btTfaZDLp3ZC0n0z0Tbg5zkbRfGqYdAduYBQR8IlxDAaryrk4wTSa7TZkcgMJd6PYUKqpf37P4nNli7fDNa3tbDPpaSohHRqEEHWg95bLhT3z5xZnvsHJX3tLXSs1znvQkq9ANn7eYhjZep/GZLfnDs7v9UvQfd7D59HsD2GvN6AHQ0gygnVsVrR6/vL0gcGn50ra3gjn9LL29AEgjR75QF969hiwY0ZdT69sfOvia95mtCw3GNgGZ3j7PtOVdhzyJjOMjgSPRtV2MbfZw7cf71h8+C7K4W9gPw5VtZ62C3W6rZRau9t1ZyDWWs8aWT3wb58zvoPO8v7Im4w1qxiN6h14AurjX0+I9/bWuzLeaAKL9QYSBqXmXU/wm3XIJms108C/bQuPcM2+gIw4s4lD0DPVrnPgaKnnL2i9v/vYnFAx7G1VnPVk4K/FnWq8Vs6zAG2WNdugd2pbPESPfdjjPBrVLQKinXDLz38D3n/80xbvPlKFFVDXheZWKLrYE+hx1g5zssZ6j5VJZDGHT+4XtbNRbbzg338CvD99aYd396XRYu+UN7gVCkr2C/qZHDHwAz3IpsWKdxLCL2TYAqtggqXZdyTen769gVw+3G3D1Z4gotoHR3Ehk6CXiagYv1Y7lpX2GVv226o2MsWdschwNKwa/oVq9f3bCOZgDiRnDTxKPDqHRrSTTcb7gfNegoTvCKjVI5qOgJQ5tw1R248/Ae8/nloxZ8ywMe0dj5KOYvPMoB6ztl1OQ20M7Os1ePgApqM8ii2DHuLimVWrP55+/WxDvLtjVnDWgTIFH1bNpExHP2TC4ZX3wTzWd3KQ7RMxjyV6QHD3fgVtH54Ztfr0679vrSx3oxltF9DmzL6BKXPGMtOaCnej6SNGcJtgV3lANwpLvT7SyZ9LYubp3c/3LdmQxya2SMqLn89z15D3SbaWKwQUYfzJ+YJ9yANqNYA+AcASGTTfPhRYf/rrc1uW+2rSjLbrmHPFZ7BRk0qQTebpbj3uU/pLeZw+6grMZ45CD3AOiHcqSvDj6akVuX7DVnScNCZ5lKDpdlF3mZE4qliZWnmcY/bhQZedztAWVfKI949plODHj3f//Nsi6w8PfGOGEK5Z38+aOzxpSjjQ/dycqZDEvXIEAERn2E2RbD/hZQR5v6nVp19/t8v6g8MzoXVvYduht0ig6rquaeeY/O1DqLntu1/C5pr3amPMsq0SIMswe39YlN0mWMdLYOZDn6l7AEJ/CULZH5+uhuOXdhxUCieOy2j78dyy9pdcXbTdbkfj8XG3DhcLbdlbktx+myExQ7xxbHGQG/4W14w8Qy3SYoF9OWGDuSuUcQmNIfjEOjD+P39IWP/037fCWjeR9/xWbOHcte60ZCo4q2FgmtbptJ/H8T7/JzSWPZ+fV8gxr/S3SFF4x6w5gzyfLfBFtLGjIN59tvlfH54+/fxeZH275oQu3wSo27ghcAYrZM0MHoVWyEsF6+dYY2EMPjtOYrN9ok/pxQ+ivH/5VTIcp4ddZyFKRhMAMyEhbiyadY+hr8uJipfgVzs4ZFwYJ/uwNma6tIC2ITsTqhLE+/fnAuvWKFSJuuMlHt8CqNs0FPeAGAHxTkKhjTmsiaMQm3IoV13WnOnFTJ/IqD1/nhWyhvyaAU67i7MdAYNFbwYMVatdUVWCPpsKw7gMjF2Npa36+cNTYM70p+Uuh0DMkM05LgG+MdlVjc497bRrUkJ/aaPkBqcItLEg8cgp1x6FBnqqC4OqVN5pD17UZ14DfNqkl7MF1ZD34cmepMRoKPj2ZnBsaK1riZAXID1GxKTUnB8luMHLZxyzD5ct/GSNwslcRtOEd1eJ7UnWE9lwC3reAqhXz8QvoqrqnhtOwLqj6arCtjZuqOV20QurvwfdMu/IMCWLyzTEeXeNeEfX3Yjbdo3AS/mcS2TmtQplixpuhNSqSLw2y2o5I/ZhNkqAbGJyjVgj3oEZmiiSF7tYzqIeA/TcW8FJcV7eSMZ1DKLdwkk2lxEAC4Wh9nD78sGRfZiJEphIUevXzYd499hB7Q92uYhIE7apG8Gs9NXDQzWHKFFH1pVNUhgCgUOS5p1QlKBXXocR6qJ3ZQ3ZrIy7qzyC0i3aqronKtMEpBNGFZ9bQdYQWQcmD1RW1hLJT+gv1xZ7oFY3JZNLQeHNNDGGeNcfSohRwRyvNOqtQKVy9PTUkDGTM9SagmUWKFeIE8gsvb1zJRckM9RySSrMXvVvG0aId6gfxJzA5lDq8kVkwvWD4maVBIncyBaPAywUgN5FPDs+KEkdFQu+XPBMYs3c/ivEOzJDC17zXVGVfbhNUY+wZYP8lCqQRebar4CFAluc36yAaHMvrg/Qp1qVw3u5Ug/tXqrq5M4w6u0Koq33iHmhwiy6nzCzhSuTHhQu1QfIUtFL4m+OxqKmixXxrpVWsok0DmGDb/fCSGDHD7wRu9+GAqZgcRK77OsZgiLqUtY1ZaP8xCuOR+mikFi2WEV43yMnsOPfl2wKpkgZ53nJMw2blnCoeS7DEC2W6iV6bQpKUndFM3KKog56VqozBiMt8/6Culi0Ep25QqzQTgvLDuK+aYFfXkXsxqL558QSRA8PZoUkH9K89OEIpInKvEMncNNKlOBGQiRUD0zK5Ygo91aJPHLjgEMzPBg4SlDQdygCnLi72TM+WMvlowdIapKw+sTg2+BuhY7YkFJhOkpmVmKRzXSI8uEaFFvq2EVRgqLUg9tHzdcq5L0oQlAukBPEuR/mQiKDFIyIYWNzZpMtHgXYDtpoBpstUDSimPR0kRGprnMVIMA7lJrcA1T3gtEVKaNVQ2p3i0S2ipPIy24CsD4XloJTUHD/F8xIAxUb0rwK8A6lJgGlUfeFu60+AneFR40D5d4qQZkzUzZKcDbuhR2xUnQWngukVaIA7yimjU9A3BnWuH7Jq5T51vC8QTJRP23qAtVwphK6LrCrA+3HuUjRFPLRiHe1GPHCUrONmqUyhpFdu+SpZBL0EKugZ7rQBWpVGw2xnY1QLJ/ERqmfXwgxPCDeC66oAs0ZEKNvA8a4zqIcjFMJ74pFtihMMuWA9OAlf2QK9ukVLCuoFjz7sZviMQQPkFlh6qiTts2ZDM58UxMXzpL8CtyYRONikpv/DqDXu8TMgMmI3lLIJVo4Q07UHLAqrsA7qlhoUEj0Zgy7/cpMyCIVFij3liyQERdUVaXJ2h+3vP1J6BhDMdnMy83XdVLgPUaPgNKo9nDqVAkbLR3KFC0QVGQLAJIe5FYOJ6RZtUfKjQwq64r5KPIOncB+i1ECFs6swlLppYoVnJ/GReUAqNqxe6VSKHBT2P8Vx3UqURDeKyg1J3fhUxz7XYfHvJYGPeBBoqVY0QNQq+n5aVdkwdPujFOfuOF0Qp8cxlITni1uE8GIt+Qv5t4Dp/6FeGJhJMSCf/0XMu2ZZxeU3G0cFc16oVmdol40cICqZThbDvHa6EqtAhfIWqh21gFqNaNS4CAkeaVd0YbRirwXmndQsYAPULUNB7l4nVzOBChKoPGu0ynihKME6YtrJTyd9DBBibUYCrzPobb6o2r1BgOvuzRVbCKpWk42cxCBq2TyvP20Nv5AX281ryeYA+qCCo4TCA5QtQ8Uqu3k9gw6WtGZ8GttaIBcqJpfrTGsTfhSyWZshwiBOsGMi57Ipq1agipw5OzVrcSJOnomVQA6jA50Q1lbgJ89W785uCCbPNEHq0CupfN/GhGcfeqvOihhJMo76JkOMKNymeJr8gBb45wX3U3OOxSq1M0hfw4OLnAh66tbCa1mQd4t0O+Cdrigz069Jq84Dn7XiCyN1kLhCUEnsDGG06lhmIHigO20QpHTzlmlXR8ewqzYQujoG6C1+MWCahuFvGYD3v/+ck9Gm2kjN4JRgnZK9IYHslxs7GPX9+P5/nSyTNNUhglWwXTe5TmsN3mwggtNG1uXHgCoF6OzqEXPsPpoa66DHVStJAwv875QxULy/3aSHlONXG7t1TS9t1QXi3C9Wz+Oz+jahDOfrDwWrveEktfZGCPKNxXIU6vFm8KqS6lyHQyN2Q7pLcuA2yIP4q9gLcG6HTMyLliCl8sy1GuknH+rIek6lbzz4+9qJoJQ0qOct68O7WY5L1StlLgC82kJxgs8iJXxDs/HlSuO74TGZRiXofpp66YKrZ8pKaQL1VI5nFVlHnqZXIYJ4d6WNUNgLpjiHanVdg6u4r1Vg7x8yhFLDFFsVF5vpZUVctWhYi9VFnPkuxF0nwC8gyK/bRV2xJ5Lvgs4/mglSDZSrIkqWua1isgxYK5Xsvjd58lmWEgCzzzjuz/SKD7nzEIb9xIke6v5xWIadWRM+B6vK6ij9wc0R2Z4/FWRXW8FpUOHoNxcDe/QCWzppAcICtagUHMeNMvyUJFK4HGBm8Ji7vCyCx3QpRRZvrCIat4dqFZn7ZiRjT1s0qGLJ4Y1B9JKyCOV8C4Y9tAc5OKC1I0c4lvMoXNfzTu8RYe6CO2ecJu6HIQUyWkWgCWZsrPQTWHAI+de9De5rUMYQLpev8Ggmnd4F+OynVoCt6EhmNBe/P4wdMptvcl2/xws0wlIUym8qsFUB8PbhTmXsEDeSRrGB/mA4tXTd4TbTLwTLypvO1jpw2ue32mC6j8Zc+Y8QM7RhPS2Tnx4NnMwijihsWZ1slCthu0km5rdc6qD20BcX/y2fm2c+dzgeitcDoeDAFnhAawd5l1KAeOWGe/IHj1fj9UGhA8YncegdmGA9yB8X7+e+ZArcLQO34HPcRFuiUYcs8Q3wtfx/hX01M71VokRJiydVS/EP6OREL8Q9Frzk3UmMGfwD0s8WPCr3pLN4CagDh1iLKKSd+jJABPrLvCZX6yCIJq3fuEbVHPm3hDcS7790W2dfewZ4qTn9RJsHF3iZkQh72R93YQ43NBSaWQwtj29RkATTX0dR5XuQ3CwtfqdM8jVKrjeihAOW+AHMIh2lVjoZpTzvfG8YULeb1dEwyhBO9dbJXCt+UvXVtnf4rtxofV0exxbtVJuuu16Om/VX2LLes/LQ4SnjaYWMejz8pirAyk+POgtDunNKOVuEujlu1EyODudeVrTb4Wp0YT9X0/sUsDfgxsYp7l/3C3U/rLX0wdXJIQv9cV6HJ1qfu4xRWDFyebpJz1oaRf65Yco+9pmsz4eXmIr72gYd0uYbblTVOJx8VH/dNsail/upts9jvimnzU7Mo+nlxopB+Z/3UM7QTEKjhKYhrGPou3sikMUX37vs0n0eRWY03nkz9IutlEUzQ3DMNn0rauUUfWiVfHRvCuH6UZRqvbmquJx0Ncfq+BwXde5QfD3bUEXTt7F73YiISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhIfF/jv8BcMta3uT5iAcAAAAASUVORK5CYII=" alt="SENAI"></div>
+      <div class="titlebox">
+        <h1 id="h1T">Controle de Notas</h1>
+        <p class="sub" id="subT">Cálculo, Tecnologia em Processos Químicos, Módulo 02</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="who">Prof. Marcos Monteiro dos Santos<span>FATEC SENAI Roberto Mange</span></div>
+      <div class="tools">
+        <button class="btn" id="btnCloud" type="button" data-st="off" aria-label="Nuvem"><span class="dot" aria-hidden="true"></span><span id="cloudTxt">Nuvem</span></button>
+        <button class="btn" id="btnConf" type="button" aria-pressed="false">Modo confidencial</button>
+        <button class="btn" id="btnFs" type="button">Tela cheia</button>
+        <button class="btn" id="btnLock" type="button">Bloquear</button>
+      </div>
+    </div>
+  </header>
+  
+  
+
+  <div class="cursos" id="cursos" role="group" aria-label="Curso"></div>
+  <div class="tabs" id="tabs" role="group" aria-label="Turma"></div>
+  <section class="stats" id="stats" aria-label="Resumo da turma"></section>
+
+  <div class="toolbar">
+    <div class="vista" id="vista" role="group" aria-label="Etapas na tela"></div>
+    <div class="search"><label class="sr" for="q">Buscar aluno</label><input id="q" type="search" placeholder="Buscar aluno ou matrícula" autocomplete="off"></div>
+    <label class="chk"><input type="checkbox" id="onlyPend"> Só quem tem pendência</label>
+    <span class="grow"></span>
+    <button class="btn primary" id="btnImp" type="button">Importar PDF</button>
+    <button class="btn" id="btnAddStu" type="button">Adicionar alunos</button>
+    <button class="btn" id="btnPdf" type="button">Imprimir / PDF</button>
+    <button class="btn primary" id="btnNewTask" type="button">Nova tarefa</button>
+  </div>
+
+  <div class="conf-legend" id="confLegend" role="group" aria-label="Legenda das cores" hidden></div>
+  <div class="grid-wrap" id="gridWrap" tabindex="0" aria-label="Quadro de entregas por aluno e tarefa"></div>
+  <p class="mfnote" id="mfNote"></p>
+
+  <section class="data" aria-labelledby="dataH">
+    <h2 id="dataH">Seus dados</h2>
+    <p>Os registros ficam salvos neste navegador. Baixe um backup de vez em quando para não perder nada ao trocar de computador.</p>
+    <div class="row">
+      <button class="btn" id="btnCsv" type="button" disabled>Exportar planilha da turma (CSV)</button>
+      <button class="btn" id="btnJson" type="button" disabled>Salvar backup (JSON)</button>
+      <button class="btn" id="btnRestore" type="button">Restaurar backup</button>
+      <button class="btn" id="btnReorg" type="button">Reorganizar turmas</button>
+      <button class="btn" id="btnUndoReorg" type="button" disabled>Desfazer última reorganização</button>
+      <button class="btn danger" id="btnReset" type="button">Resetar notas e nomes da turma</button>
+      <button class="btn" id="btnUndoReset" type="button" disabled>Desfazer último reset</button>
+      <input type="file" id="fileIn" accept="application/json,.json" hidden>
+    </div>
+  </section>
+</div>
+
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateT">
+  <form class="gate-card" id="gateForm" autocomplete="off">
+    <div class="gbrand"><img id="gateLogo" alt="SENAI"></div>
+    <h2 id="gateT">Controle de Notas</h2>
+    <p>Acesso restrito. Digite a senha para entrar.</p>
+    <label class="sr" for="gatePw">Senha</label>
+    <input id="gatePw" type="password" inputmode="numeric" autocomplete="new-password" maxlength="20">
+    <p class="gerr" id="gateErr" role="alert"></p>
+    <button class="btn primary" type="submit">Entrar</button>
+  </form>
+  <p class="gate-name">MARCOS MONTEIRO DOS SANTOS</p>
+</div>
+<dialog id="dlg" aria-live="off"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Dados iniciais ---------- */
+/* Este arquivo NÃO contém dados de alunos. As turmas abaixo são só “vagas” (código e data de início).
+   Os alunos entram pelo botão “Importar PDF” (ou “Adicionar alunos”) e ficam guardados apenas neste
+   navegador e, se a Nuvem estiver ativada, na conta do professor. */
+var KEY = 'senai-calculo-tarefas-v1';
+var SMALL = {de:1,da:1,do:1,das:1,dos:1,e:1};
+function titleCase(s){
+  return s.toLowerCase().split(/\s+/).map(function(w,i){
+    return (i>0 && SMALL[w]) ? w : w.charAt(0).toUpperCase()+w.slice(1);
+  }).join(' ');
+}
+var RAW = [
+  {id:'c276439', codigo:'276439', inicio:'2026-02-02', alunos:[]},
+  {id:'c276432', codigo:'276432', inicio:'2025-09-01', alunos:[]}
+];
+function seedState(){
+  return {
+    v:5, ui:{turma:RAW[0].id,curso:'Tecnologia em Processos Químicos',vista:'ambas'}, cursos:['Tecnologia em Processos Químicos','Automação Industrial','Automação Industrial 1ºP'], tarefas:[], registros:{}, aval:{}, aulas:{}, cfg:{regraMF:'rec-menor',mfComb:'media',descontoAtraso:20,escala:100,somaSimples:true,listas25:true,reorg:''},
+    turmas: RAW.map(function(t){
+      return {id:t.id, codigo:t.codigo, curso:'Tecnologia em Processos Químicos', componente:'Cálculo', inicio:t.inicio, alunos:t.alunos.map(function(a){
+        return {id:'a'+a[0], matricula:a[0], nome:titleCase(a[1]), email:a[2]};
+      })};
+    })
+  };
+}
+
+/* ---------- Utilidades ---------- */
+function $(s,r){return (r||document).querySelector(s);}
+function h(tag, props){
+  var el=document.createElement(tag);
+  if(props){ Object.keys(props).forEach(function(k){
+    var v=props[k]; if(v==null||v===false) return;
+    if(k==='class') el.className=v;
+    else if(k==='text') el.textContent=v;
+    else if(k.indexOf('on')===0) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if(k in el){ try{ el[k]=v; }catch(e){ el.setAttribute(k,v); } }
+    else el.setAttribute(k, v===true?'':v);
+  }); }
+  for(var i=2;i<arguments.length;i++){ append(el, arguments[i]); }
+  return el;
+}
+function append(el,kid){
+  if(kid==null||kid===false) return;
+  if(Array.isArray(kid)){ kid.forEach(function(k){append(el,k);}); return; }
+  el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+}
+function uid(){ return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function addDays(iso,n){ var d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function fmtDate(iso){ return iso ? iso.split('-').reverse().join('/') : ''; }
+function fmtDateTime(iso){ var d=new Date(iso); if(isNaN(d)) return ''; return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' às '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function fmt(n,dec){ return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:(dec==null?1:dec)}); }
+function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+function plural(n,a,b){ return n===1?a:b; }
+
+var ICONS = {
+  check:'<path d="M3 8.5l3.2 3L13 4.5"/>',
+  clock:'<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.2"/>',
+  x:'<path d="M4 4l8 8M12 4l-8 8"/>',
+  dash:'<path d="M4 8h8"/>',
+  alert:'<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.4M8 10.9v.1"/>',
+  half:'<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11"/>'
+};
+function ic(name){
+  var s=document.createElement('span'); s.className='ic'; s.setAttribute('aria-hidden','true');
+  s.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[name]+'</svg>';
+  return s;
+}
+var STATUS = {
+  entregue:{label:'Entregue', icon:'check'},
+  atrasada:{label:'Com atraso', icon:'clock'},
+  nao:{label:'Não entregou', icon:'x'},
+  pendente:{label:'Pendente', icon:'dash'}
+};
+var ORDER = ['entregue','atrasada','nao','pendente'];
+
+/* ---------- Estado e armazenamento ---------- */
+var storageOk = true;
+try{ localStorage.setItem(KEY+'-t','1'); localStorage.removeItem(KEY+'-t'); }catch(e){ storageOk=false; }
+function valid(s){ return !!(s && Array.isArray(s.turmas) && s.turmas.length && Array.isArray(s.tarefas) && s.registros && typeof s.registros==='object'); }
+var migNotes=[];
+function normalize(s){
+  s.ui=s.ui||{};
+  s.aval=(s.aval && typeof s.aval==='object') ? s.aval : {};
+  /* a nota livre da versão anterior (8 aulas e frequência) não cabe no modelo novo: fica guardada à parte */
+  if(s.livre && typeof s.livre==='object'){ if(Object.keys(s.livre).length && !s.livreAntigo) s.livreAntigo=s.livre; delete s.livre; }
+  s.aulas=(s.aulas && typeof s.aulas==='object') ? s.aulas : {};
+  s.cfg=s.cfg||{};
+  if(s.cfg.regraMF!=='media') s.cfg.regraMF='rec-menor';
+  if(s.cfg.mfComb!=='soma') s.cfg.mfComb='media';
+  if(s.cfg.descontoAtraso==null || isNaN(Number(s.cfg.descontoAtraso))) s.cfg.descontoAtraso=20;
+  if(s.cfg.reorg==null) s.cfg.reorg='';
+  s.tarefas.forEach(function(t){ t.etapa=(t.etapa===2)?2:1; });
+  /* passa as notas antigas (0 a 10 ou outro valor máximo) para a escala de 0 a 100, mantendo a proporção */
+  if(s.cfg.escala!==100){
+    s.tarefas.forEach(function(t){
+      var mx=Number(t.max)||10;
+      if(mx!==100){
+        var f=100/mx;
+        Object.keys(s.registros).forEach(function(k){
+          if(k.indexOf(t.id+'|')!==0) return;
+          var r=s.registros[k];
+          if(r && r.nota!=null && r.nota!=='') r.nota=Math.round(Number(r.nota)*f*100)/100;
+        });
+        t.max=100;
+      }
+    });
+    Object.keys(s.aval).forEach(function(k){
+      var v=s.aval[k];
+      ['a1','a2','rec'].forEach(function(fl){
+        if(v[fl]!=null && v[fl]!=='') v[fl]=Math.round(Number(v[fl])*10*100)/100;
+      });
+    });
+    s.cfg.escala=100;
+  }
+  /* soma simples: renomeia "Lista Plataforma" e passa o valor máximo das listas para 25 */
+  if(!s.cfg.somaSimples){
+    var ren=0, adj=0;
+    s.tarefas.forEach(function(t){
+      if(/^lista\s+(da\s+)?plataforma$/.test(norm(t.titulo).trim().replace(/\s+/g,' '))){
+        var dup=s.tarefas.some(function(o){ return o!==t && o.turmaId===t.turmaId && norm(o.titulo).trim()==='lista 2'; });
+        if(!dup){ t.titulo='Lista 2'; ren++; }
+      }
+    });
+    s.tarefas.forEach(function(t){
+      if((Number(t.max)||100)!==100) return;
+      var mx=0;
+      Object.keys(s.registros).forEach(function(k){
+        if(k.indexOf(t.id+'|')!==0) return;
+        var r=s.registros[k];
+        if(r && r.nota!=null && r.nota!=='' && Number(r.nota)>mx) mx=Number(r.nota);
+      });
+      if(mx<=25){ t.max=25; adj++; }
+    });
+    s.cfg.somaSimples=true;
+    if(ren) migNotes.push('“Lista Plataforma” virou “Lista 2”.');
+    if(adj) migNotes.push('O valor máximo de '+adj+' '+(adj===1?'tarefa':'tarefas')+' passou de 100 para 25, e as notas lançadas foram mantidas.');
+    if(ren||adj) migNotes.push('O subtotal agora é a soma simples de tarefas, participação e postura.');
+  }
+  /* Lista 1 e Lista 2 valem de 0 a 25 cada */
+  if(!s.cfg.listas25){
+    var l25=0, esc=0;
+    s.tarefas.forEach(function(t){
+      if(!/^lista [12]$/.test(norm(t.titulo).trim().replace(/\s+/g,' '))) return;
+      var mx=Number(t.max)||100; if(mx===25) return;
+      var keys=Object.keys(s.registros).filter(function(k){return k.indexOf(t.id+'|')===0;});
+      var over=keys.some(function(k){ var r=s.registros[k]; return r && r.nota!=null && r.nota!=='' && Number(r.nota)>25; });
+      if(over){
+        var f=25/mx;
+        keys.forEach(function(k){ var r=s.registros[k]; if(r && r.nota!=null && r.nota!=='') r.nota=Math.round(Number(r.nota)*f*100)/100; });
+        esc++;
+      }
+      t.max=25; l25++;
+    });
+    s.cfg.listas25=true;
+    if(l25) migNotes.push('Lista 1 e Lista 2 agora valem de 0 a 25.');
+    if(esc) migNotes.push(esc+' '+(esc===1?'lista tinha':'listas tinham')+' notas acima de 25 e foram convertidas na mesma proporção (por exemplo, 80 de 100 virou 20 de 25).');
+  }
+  /* cursos e turmas */
+  s.turmas.forEach(function(t){ if(!t.curso) t.curso='Tecnologia em Processos Químicos'; if(!t.componente) t.componente='Cálculo'; });
+  s.cursos=Array.isArray(s.cursos) ? s.cursos : [];
+  ['Tecnologia em Processos Químicos','Automação Industrial','Automação Industrial 1ºP'].forEach(function(n){ if(s.cursos.indexOf(n)<0) s.cursos.push(n); });
+  s.turmas.forEach(function(t){ if(s.cursos.indexOf(t.curso)<0) s.cursos.push(t.curso); });
+  if(['1','2','ambas'].indexOf(s.ui.vista)<0) s.ui.vista='ambas';
+  s.ui.conf=!!s.ui.conf;
+  if(!s.ui.curso || s.cursos.indexOf(s.ui.curso)<0){
+    var tt=s.turmas.filter(function(t){return t.id===s.ui.turma;})[0];
+    s.ui.curso=tt ? tt.curso : s.cursos[0];
+  }
+  return s;
+}
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){
+      var s=JSON.parse(raw);
+      if(valid(s)){
+        if(!s.aulas){ try{ localStorage.setItem(KEY+'-antes-da-v4',raw); }catch(e){} }
+        return normalize(s);
+      }
+    }
+  }catch(e){}
+  return seedState();
+}
+var state = load();
+function persist(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); storageOk=true; }catch(e){ storageOk=false; }
+  renderBanner();
+  cloudTouch();
+}
+function renderBanner(){
+  var b=$('#banner'); b.replaceChildren();
+  if(!storageOk) b.append(h('div',{class:'banner',role:'alert',text:'Este navegador não deixa salvar os registros. Use “Salvar backup” antes de fechar a página.'}));
+  if(migNotes.length) b.append(h('div',{class:'banner info',role:'status'},
+    h('span',{text:'Ajustes automáticos: '+migNotes.join(' ')+' '}),
+    h('button',{type:'button',class:'linkbtn',onclick:function(){ migNotes.length=0; renderBanner(); },text:'Entendi'})));
+}
+function cursoTurmas(){ return state.turmas.filter(function(t){return t.curso===state.ui.curso;}); }
+function curTurma(){
+  var l=cursoTurmas(); if(!l.length) return null;
+  var t=l.filter(function(x){return x.id===state.ui.turma;})[0] || l[0];
+  state.ui.turma=t.id; return t;
+}
+function tasksOf(tid,etapa){
+  return state.tarefas.filter(function(t){
+    return t.turmaId===tid && (etapa==null || (t.etapa===2?2:1)===etapa);
+  }).sort(function(a,b){
+    return a.entrega===b.entrega ? a.titulo.localeCompare(b.titulo,'pt-BR') : (a.entrega<b.entrega?-1:1);
+  });
+}
+function maxOf(t){ return Number(t.max)||100; }
+function rec(tid,aid){ return state.registros[tid+'|'+aid]; }
+function statusOf(t,aid){ var r=rec(t.id,aid); return r&&STATUS[r.status] ? r.status : 'pendente'; }
+function isOverdue(t){ return todayISO() > t.entrega; }
+function got(st){ return st==='entregue'||st==='atrasada'; }
+function descPct(){ var p=Number(state.cfg.descontoAtraso); return (isNaN(p)||p<0||p>100)?20:p; }
+function finalOf(st,n){
+  if(n==null||n==='') return null;
+  n=Number(n); if(isNaN(n)) return null;
+  return st==='atrasada' ? Math.round(n*(1-descPct()/100)*100)/100 : n;
+}
+function notaFinal(t,r){ return r ? finalOf(r.status,r.nota) : null; }
+function normNota(t,r){ var f=notaFinal(t,r); if(f==null) return (r && r.status==='nao') ? 0 : null; return f/maxOf(t)*100; }
+function mediaAluno(tasks,aid){
+  var v=tasks.map(function(t){return normNota(t,rec(t.id,aid));}).filter(function(x){return x!=null;});
+  return v.length ? v.reduce(function(a,b){return a+b;},0)/v.length : null;
+}
+function notaTxt(t,r){
+  var f=notaFinal(t,r); if(f==null) return '';
+  return fmt(f)+(maxOf(t)!==100 ? '/'+fmt(maxOf(t)) : '');
+}
+
+/* ---------- Avisos e diálogo ---------- */
+var toastTimer;
+function toast(msg){
+  var el=$('#toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){el.classList.remove('show');},3400);
+}
+var dlg=$('#dlg'); var pendingFocus=null;
+function openDialog(node, focusSel, wide){
+  dlg.classList.toggle('wide',!!wide);
+  dlg.replaceChildren(node);
+  if(!dlg.open) dlg.showModal();
+  dlg.scrollTop=0;
+  if(focusSel){ var f=dlg.querySelector(focusSel); if(f) f.focus(); }
+}
+function closeDialog(){ if(dlg.open) dlg.close(); }
+dlg.addEventListener('click',function(e){ if(e.target===dlg) dlg.close(); });
+dlg.addEventListener('close',function(){
+  dlg.replaceChildren();
+  if(pendingFocus){ var el=document.querySelector('[data-key="'+pendingFocus+'"]'); pendingFocus=null; if(el) el.focus(); }
+});
+function twoStep(btn,label,confirmLabel,action){
+  var armed=false, timer;
+  btn.textContent=label;
+  btn.addEventListener('click',function(){
+    if(!armed){
+      armed=true; btn.textContent=confirmLabel; btn.classList.add('armed');
+      timer=setTimeout(function(){armed=false;btn.textContent=label;btn.classList.remove('armed');},4000);
+    } else { clearTimeout(timer); action(); }
+  });
+}
+function copyText(text, fallbackEl){
+  function manual(){ if(fallbackEl){ fallbackEl.focus(); fallbackEl.select(); } toast('Selecionei os e-mails. Use Ctrl+C para copiar.'); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast('E-mails copiados.');},manual);
+  } else manual();
+}
+
+/* ---------- Renderização principal ---------- */
+function render(){ closePop(false); renderConf(); renderCursos(); renderTabs(); renderHead(); renderVista(); renderStats(); renderGrid(); renderNote(); }
+function renderConf(){
+  var on=!!state.ui.conf, b=$('#btnConf');
+  b.textContent=on?'Sair do modo confidencial':'Modo confidencial';
+  b.setAttribute('aria-pressed',String(on));
+  var bar=$('#confBar'); bar.hidden=!on;
+  bar.textContent=on?'Modo confidencial ligado: as notas estão ocultas e aparecem só pela cor (tarefas e pontinhos).':'';
+  var lg=$('#confLegend'); lg.replaceChildren();
+  lg.hidden=!(on && curTurma());
+  if(!lg.hidden){
+    lg.append(h('strong',{text:'Legenda:'}));
+    [['cf-ok','check','Nota completa'],['cf-part','half','Nota parcial'],['cf-none','x','Nenhuma entregue ou nota zero'],['cf-wait','dash','Ainda no prazo ou sem lançamento']].forEach(function(o){
+      lg.append(h('span',{class:'lg'},h('span',{class:'sw '+o[0]},ic(o[1])),o[2]));
+    });
+  }
+  document.body.classList.toggle('conf',on);
+}
+
+function renderCursos(){
+  var box=$('#cursos'); box.replaceChildren();
+  state.cursos.forEach(function(nome){
+    var n=state.turmas.filter(function(t){return t.curso===nome;}).length;
+    box.append(h('button',{type:'button',class:'curso','aria-pressed':String(nome===state.ui.curso),
+      onclick:function(){ state.ui.curso=nome; persist(); render(); }},
+      nome+(n?'':' (vazio)')));
+  });
+}
+function renderTabs(){
+  var c=curTurma(), box=$('#tabs'); box.replaceChildren();
+  cursoTurmas().forEach(function(t){
+    var n=t.alunos.length;
+    box.append(h('button',{type:'button',class:'tab','aria-pressed':String(c && t.id===c.id),
+      onclick:function(){ state.ui.turma=t.id; persist(); render(); }},
+      h('div',{class:'t1',text:tName(t)}),
+      h('div',{class:'t2',text:n?(n+' '+plural(n,'aluno','alunos')+(t.inicio?', início em '+fmtDate(t.inicio):'')):'sem alunos, vaga livre'})));
+  });
+}
+function renderHead(){
+  var c=curTurma();
+  $('#h1T').textContent='Controle de Notas';
+  var sub=state.ui.curso||'';
+  if(c && c.meta && c.meta.etapa){ var mod=String(c.meta.etapa).replace(/^\d+\s*-\s*/,''); if(mod) sub+=', '+tituloCurso(mod); }
+  else if(c && c.codigo==='276439' || c && c.codigo==='276432') sub+=', Módulo 02';
+  if(c) sub=(c.componente||'Cálculo')+', '+sub;
+  $('#subT').textContent=sub;
+  ['#btnAddStu','#btnPdf','#btnNewTask'].forEach(function(s){ $(s).disabled=!c; });
+  document.title='Controle de Notas, '+(state.ui.curso||'')+' — Prof. Marcos Monteiro dos Santos';
+}
+function visEtapas(){ var v=state.ui.vista; return v==='1'?[1]:(v==='2'?[2]:[1,2]); }
+function renderVista(){
+  var box=$('#vista'); box.replaceChildren();
+  [['1','1ª etapa'],['2','2ª etapa'],['ambas','Duas juntas']].forEach(function(o){
+    box.append(h('button',{type:'button','aria-pressed':String(state.ui.vista===o[0]),
+      onclick:function(){ state.ui.vista=o[0]; persist(); render(); }},o[1]));
+  });
+}
+
+function renderStats(){
+  var c=curTurma(), box=$('#stats'); box.replaceChildren(); if(!c) return;
+  var tasks=tasksOf(c.id);
+  var total=tasks.length*c.alunos.length, recv=0, over=0;
+  tasks.forEach(function(t){ c.alunos.forEach(function(a){
+    var s=statusOf(t,a.id); if(got(s)) recv++; if(s==='pendente' && isOverdue(t)) over++;
+  }); });
+  var mfs=c.alunos.map(function(a){return calcMF(c,a.id);}).filter(function(x){return x!=null;});
+  var mf=mfs.length ? mfs.reduce(function(a,b){return a+b;},0)/mfs.length : null;
+  function stat(k,v,extra,cls){ return h('div',{class:'stat'+(cls?' '+cls:'')}, h('div',{class:'k',text:k}), h('div',{class:'v'}, v, extra?h('small',{text:extra}):null)); }
+  box.append(
+    stat('Tarefas', String(tasks.length)),
+    stat('Entregas recebidas', total?recv+' de '+total:'–', total?fmt(recv/total*100,0)+'%':''),
+    stat('Pendências vencidas', String(over), '', over>0?'warn':''),
+    stat('Média final da turma', state.ui.conf?'•••':(mf==null?'–':fmt(mf,1)), (state.ui.conf||mf==null)?'':(state.cfg.mfComb==='soma'?'de 200':'de 100'))
+  );
+}
+
+var CONF_MSG='Modo confidencial ligado. Saia dele para ver ou lançar notas.';
+/* pontinhos coloridos das colunas de nota: verde = completa, amarelo = parcial, vermelho = zero, cinza = ainda sem lançamento */
+function dotCls(v,max){
+  if(v==null) return 'd-wait';
+  if(v>=max-0.0001) return 'd-ok';
+  return v>0 ? 'd-part' : 'd-none';
+}
+var DOT_LABEL={'d-ok':'Nota completa','d-part':'Nota parcial','d-none':'Nenhuma entregue ou nota zero','d-wait':'Ainda sem lançamento'};
+function cellBtn(task,aluno){
+  var r=rec(task.id,aluno.id), st=statusOf(task,aluno.id);
+  var over=(st==='pendente' && isOverdue(task));
+  if(state.ui.conf){
+    /* três cores sem mostrar números: verde = nota completa, amarelo = nota parcial, vermelho = nenhuma entregue */
+    var fin=notaFinal(task,r), full=(fin!=null && fin>=maxOf(task)-0.0001);
+    var cls, lab, icn;
+    if(got(st) && full){ cls='cf-ok'; lab='Nota completa'; icn='check'; }
+    else if(got(st)){ cls='cf-part'; lab='Nota parcial'; icn='half'; }
+    else if(st==='nao' || over){ cls='cf-none'; lab='Nenhuma entregue'; icn='x'; }
+    else { cls='cf-wait'; lab='Ainda no prazo'; icn='dash'; }
+    return h('button',{type:'button',class:'cell cmp '+cls,'data-key':task.id+'|'+aluno.id,title:lab,
+      'aria-label':aluno.nome+', '+task.titulo+': '+lab,onclick:function(){ toast(CONF_MSG); }},
+      ic(icn));
+  }
+  var label=over?'Vencida':STATUS[st].label, f=notaFinal(task,r), nt=(f==null)?'':fmt(f), key=task.id+'|'+aluno.id;
+  var tip=label+(nt?', nota '+nt+' de '+fmt(maxOf(task)):'');
+  if(r && st==='atrasada' && r.nota!=null && r.nota!=='' && descPct()>0) tip+=' (inserida '+fmt(r.nota)+', menos '+fmt(descPct())+'% por atraso)';
+  return h('button',{type:'button',class:'cell cmp s-'+(over?'vencida':st),'data-key':key,title:tip+'. Clique para abrir',
+    'aria-label':aluno.nome+', '+task.titulo+': '+tip+'. Abrir registro',
+    onclick:function(ev){ openCell(task,aluno,null,ev.currentTarget); }},
+    ic(over?'alert':STATUS[st].icon), nt?h('span',{class:'nota',text:nt}):null);
+}
+
+var PARTE={tarefas:50,part:30,post:20,total:100};
+var AULAS={n:10,partMax:3,postMax:2};
+var ETAPAS=[1,2];
+
+function numOrNull(v){ if(v===undefined||v===null||v==='') return null; var n=Number(v); return isNaN(n)?null:n; }
+function getAv(tid,aid){ return state.aval[tid+'|'+aid]||{}; }
+function getAulas(tid,aid){ return state.aulas[tid+'|'+aid]||{}; }
+function sumArr(arr){
+  var s=null;
+  (Array.isArray(arr)?arr:[]).forEach(function(v){ var n=numOrNull(v); if(n!=null) s=(s||0)+n; });
+  return s;
+}
+function partPts(c,aid,e){ return sumArr(getAulas(c.id,aid)['p'+e]); }
+function postPts(c,aid,e){ return sumArr(getAulas(c.id,aid)['q'+e]); }
+function tarefasSoma(c,aid,e){
+  var s=null;
+  tasksOf(c.id,e).forEach(function(t){ var f=notaFinal(t,rec(t.id,aid)); if(f!=null) s=(s||0)+f; });
+  return s;
+}
+function tarefasMax(c,e){
+  return tasksOf(c.id,e).reduce(function(a,t){return a+maxOf(t);},0);
+}
+/* subtotal: soma simples das tarefas, da participação e da postura acadêmica (no máximo 100) */
+function subtotal(c,aid,e){
+  var p=[tarefasSoma(c,aid,e),partPts(c,aid,e),postPts(c,aid,e)];
+  if(p.every(function(x){return x==null;})) return null;
+  return Math.min(PARTE.total,p.reduce(function(a,x){return a+(x||0);},0));
+}
+function mediaEtapa(c,aid,e){
+  var s=subtotal(c,aid,e), a=numOrNull(getAv(c.id,aid)[e===1?'a1':'a2']);
+  return (s==null||a==null) ? null : (s+a)/2;
+}
+function calcMF(c,aid){
+  var m1=mediaEtapa(c,aid,1), m2=mediaEtapa(c,aid,2);
+  if(m1==null||m2==null) return null;
+  var p=[m1,m2], rec=numOrNull(getAv(c.id,aid).rec);
+  if(state.cfg.regraMF!=='media' && rec!=null){ var i=(p[0]<=p[1])?0:1; if(rec>p[i]) p[i]=rec; }
+  return state.cfg.mfComb==='soma' ? p[0]+p[1] : (p[0]+p[1])/2;
+}
+function parseNota(raw,max){
+  raw=String(raw).trim().replace(',','.');
+  if(raw==='') return {ok:true,val:null};
+  if(!/^\d+(\.\d+)?$/.test(raw)) return {ok:false};
+  var n=Number(raw); if(n>max) return {ok:false};
+  return {ok:true,val:Math.round(n*100)/100};
+}
+function f1(v){ return (v==null||v==='') ? '' : fmt(v,1); }
+function f2(v){ return (v==null||v==='') ? '' : fmt(v,2); }
+function fmtIn(v){ return (v==null||v==='') ? '' : String(v).replace('.',','); }
+function bagEmpty(b){
+  return Object.keys(b).every(function(k){
+    var v=b[k];
+    if(Array.isArray(v)) return v.every(function(x){return x==null||x==='';});
+    return v==null||v==='';
+  });
+}
+
+/* campo de nota dentro do quadro (AVAs e REC) */
+function gridInput(c,aluno,store,field,max,label,after){
+  var v=(state[store][c.id+'|'+aluno.id]||{})[field], dataF=store+'-'+field;
+  var inp=h('input',{type:'text',class:'av',inputMode:'decimal',autocomplete:'off','data-f':dataF,
+    'aria-label':label+' de '+aluno.nome,value:fmtIn(v)});
+  inp.addEventListener('change',function(){
+    var key=c.id+'|'+aluno.id, res=parseNota(inp.value,max);
+    if(!res.ok){ inp.setAttribute('aria-invalid','true'); toast('A nota deve ficar entre 0 e '+fmt(max)+'.'); inp.focus(); inp.select(); return; }
+    inp.removeAttribute('aria-invalid');
+    var bag=state[store][key];
+    if(res.val==null){
+      if(bag){ delete bag[field]; if(bagEmpty(bag)) delete state[store][key]; }
+    } else {
+      bag=state[store][key]=bag||{}; bag[field]=res.val; inp.value=fmtIn(res.val);
+    }
+    persist(); if(after) after();
+  });
+  inp.addEventListener('keydown',function(e){
+    if(e.key!=='Enter') return;
+    e.preventDefault();
+    var tr=inp.closest('tr'), nx=tr?tr.nextElementSibling:null, sel='input[data-f="'+dataF+'"]';
+    while(nx && !nx.querySelector(sel)) nx=nx.nextElementSibling;
+    inp.dispatchEvent(new Event('change'));
+    if(nx) nx.querySelector(sel).focus(); else inp.blur();
+  });
+  return inp;
+}
+
+function renderNote(){
+  var box=$('#mfNote'); box.replaceChildren(); if(!curTurma()) return;
+  var rc=(state.cfg.regraMF==='media') ? 'A REC não entra na conta. ' : 'A REC substitui a menor média quando for maior. ';
+  var comb=(state.cfg.mfComb==='soma') ? 'MF = Média 1 + Média 2. ' : 'MF = média simples da Média 1 e da Média 2. ';
+  var at=descPct()>0 ? 'Entrega com atraso: desconto de '+fmt(descPct())+'% sobre a nota inserida. ' : 'Entrega com atraso: sem desconto. ';
+  box.append(h('span',{text:'Subtotal = soma simples das tarefas (até 50 no total) + participação (até 30) + postura acadêmica (até 20), no máximo 100. '+
+    'Média da etapa = (subtotal + AVA) ÷ 2. '+comb+rc+at}),
+    h('button',{type:'button',class:'linkbtn',onclick:openRegra,text:'Alterar regras'}));
+}
+function openRegra(){
+  var rc=state.cfg.regraMF, cb=state.cfg.mfComb;
+  function opt(name,cur,v,title,desc){
+    var id=name+'_'+v;
+    return h('label',{class:'rg',htmlFor:id},
+      h('input',{type:'radio',name:name,value:v,id:id,checked:cur===v}),
+      h('span',{},h('strong',{text:title}),h('span',{class:'d',text:desc})));
+  }
+  var desc=h('input',{type:'text',id:'rgDesc',inputMode:'decimal',autocomplete:'off',value:fmtIn(descPct())});
+  var err=h('p',{class:'err',role:'alert'});
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var d=parseNota(desc.value,100);
+    if(!d.ok||d.val==null){ err.textContent='Digite um desconto entre 0 e 100.'; desc.focus(); return; }
+    var a=form.querySelector('input[name="rgMF"]:checked'), b=form.querySelector('input[name="rgRec"]:checked');
+    state.cfg.mfComb=(a&&a.value==='soma')?'soma':'media';
+    state.cfg.regraMF=(b&&b.value==='media')?'media':'rec-menor';
+    state.cfg.descontoAtraso=d.val;
+    persist(); render(); closeDialog(); toast('Regras atualizadas.');
+  }},
+    h('h2',{text:'Regras de cálculo'}),
+    h('p',{class:'lead',text:'O subtotal é a soma simples das tarefas (até 50 no total), da participação (até 30) e da postura acadêmica (até 20), no máximo 100. A média de cada etapa é (subtotal + AVA) ÷ 2. AVAs e REC vão de 0 a 100.'}),
+    h('h3',{class:'sub3',text:'Como a MF é formada'}),
+    opt('rgMF',cb,'media','Média simples da Média 1 e da Média 2','MF de 0 a 100.'),
+    opt('rgMF',cb,'soma','Soma da Média 1 com a Média 2','MF de 0 a 200.'),
+    h('h3',{class:'sub3',text:'Recuperação (REC)'}),
+    opt('rgRec',rc,'rec-menor','A REC substitui a menor média','Se a REC for maior que a menor entre a Média 1 e a Média 2, ela ocupa o lugar dessa média.'),
+    opt('rgRec',rc,'media','A REC não entra na conta','Fica só registrada.'),
+    h('h3',{class:'sub3',text:'Entrega com atraso'}),
+    h('label',{class:'f',htmlFor:'rgDesc',text:'Desconto sobre a nota inserida (%)'}), desc, err,
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:'Salvar regras'}),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form,'input[name="rgMF"]:checked');
+}
+
+function colTh(t,s,cls){
+  return h('th',{class:'colh '+cls,scope:'col'},h('span',{class:'avt',text:t}),h('span',{class:'avs',text:s}));
+}
+
+function renderGrid(){
+  var wrap=$('#gridWrap'), sl=wrap.scrollLeft, stp=wrap.scrollTop;
+  var c=curTurma(); wrap.replaceChildren();
+  if(!c){
+    wrap.append(h('div',{class:'notice'},
+      h('p',{},h('strong',{text:'Ainda não há turmas em '+(state.ui.curso||'este curso')+'. '}),
+        'Suba o PDF da listagem de alunos do Portal do Docente: a turma é montada sozinha, com os nomes em ordem alfabética e as mesmas etapas, colunas e regras.'),
+      h('button',{type:'button',class:'btn primary',onclick:openImportPdf,text:'Importar PDF'})));
+    return;
+  }
+  var vis=visEtapas(), showRes=(vis.indexOf(2)>-1), conf=!!state.ui.conf;
+  function maskTd(cls,v,max){ var d=dotCls(v,max); return h('td',{class:cls+' mask '+d,title:DOT_LABEL[d],'aria-label':DOT_LABEL[d],text:'•••'}); }
+  var all=tasksOf(c.id), tk={1:tasksOf(c.id,1),2:tasksOf(c.id,2)}, visTasks=[];
+  vis.forEach(function(e){ visTasks=visTasks.concat(tk[e]); });
+  var q=norm($('#q').value.trim()), only=$('#onlyPend').checked;
+  var alunos=c.alunos.filter(function(a){ return !q || norm(a.nome).indexOf(q)>-1 || a.matricula.indexOf(q)>-1; });
+  if(only) alunos=alunos.filter(function(a){ return visTasks.some(function(t){return statusOf(t,a.id)==='pendente';}); });
+
+  if(!all.length){
+    wrap.append(h('div',{class:'notice'},
+      h('p',{},h('strong',{text:'Ainda não há tarefas nesta turma. '}),'Crie a primeira para registrar as entregas. Participação, postura acadêmica e AVAs já podem ser preenchidas.'),
+      h('button',{type:'button',class:'btn primary',onclick:function(){openTask(null,vis[0]);},text:'Criar primeira tarefa'})));
+  }
+  if(!c.alunos.length){
+    wrap.append(h('div',{class:'empty'},h('strong',{text:'Esta turma está sem alunos: a vaga está livre. '}),'Use “Importar PDF” para colocar a nova turma neste lugar, ou “Adicionar alunos” e cole a lista.'));
+    wrap.scrollLeft=sl; wrap.scrollTop=stp; return;
+  }
+
+  var h1=h('tr',{},h('th',{class:'aluno',scope:'col',rowSpan:2,text:'Aluno'}));
+  var h2=h('tr',{});
+  vis.forEach(function(e){
+    var n=tk[e].length, tm=tarefasMax(c,e);
+    h1.append(h('th',{class:'etp e'+e,scope:'colgroup',colSpan:n+5},
+      h('span',{class:'etp-t',text:e+'ª etapa'}),
+      h('button',{type:'button',class:'linkbtn etp-add',onclick:function(){openTask(null,e);},text:'+ tarefa'}),
+      n? h('span',{class:'etp-info'+(tm!==PARTE.tarefas?' warn':''),text:tm===PARTE.tarefas?'tarefas: 50 pontos':'tarefas somam '+fmt(tm)+' (o ideal é 50)'}) : null));
+    tk[e].forEach(function(t,i){
+      var rcv=c.alunos.filter(function(a){return got(statusOf(t,a.id));}).length, tot=c.alunos.length, ov=isOverdue(t);
+      h2.append(h('th',{class:'task'+(i===0?' ebeg':''),scope:'col'},
+        h('button',{type:'button',class:'th-btn',title:t.titulo+'. Entrega '+fmtDate(t.entrega)+(ov?' (vencida)':'')+'. '+rcv+' de '+tot+' entregas. Clique para lançar entregas e notas.',
+          onclick:function(){openLaunch(t);}},
+          h('span',{class:'tt',text:t.titulo}),
+          h('span',{class:'dd'+(ov?' over':''),text:fmtDate(t.entrega).slice(0,5)+' · '+fmt(maxOf(t))+' pts'}),
+          h('div',{class:'bar'},(function(){var i2=document.createElement('i'); i2.style.width=(tot?rcv/tot*100:0)+'%'; return i2;})()),
+          h('span',{class:'cnt',text:rcv+'/'+tot}))));
+    });
+    h2.append(colTh('Participação','0 a 30','lvh'+(n===0?' ebeg':'')),
+      colTh('Postura acadêmica','0 a 20','lvh'),
+      colTh('Subtotal','0 a 100','subh'),
+      colTh(e+'ª AVA','0 a 100','avh'),
+      colTh('Média '+e,'subtotal + AVA ÷ 2','mdh'));
+  });
+  if(showRes){
+    h1.append(h('th',{class:'etp fim ebeg',scope:'colgroup',colSpan:2,text:'Resultado'}));
+    h2.append(colTh('REC','0 a 100','avh ebeg'), colTh('MF','média final','mfh'));
+  }
+
+  var body=h('tbody');
+  var ncols=1+vis.reduce(function(a,e){return a+tk[e].length+5;},0)+(showRes?2:0);
+  if(!alunos.length){
+    body.append(h('tr',{},h('td',{colSpan:ncols},h('div',{class:'empty',text:'Nenhum aluno encontrado com esse filtro.'}))));
+  }
+  alunos.forEach(function(a){
+    var tr=h('tr',{},
+      h('td',{class:'aluno'},
+        h('button',{type:'button',class:'stu',onclick:function(){openStudent(a);}},
+          h('span',{class:'n',text:a.nome}),
+          h('span',{class:'m'+(a.matricula?'':' missing'),text:a.matricula?'Matrícula '+a.matricula:'Sem matrícula'}))));
+    var refs={}, mfTd=h('td',{class:'mfc',title:'Média final'});
+    function repaint(){
+      if(conf) return;
+      vis.forEach(function(e){ var m=mediaEtapa(c,a.id,e); refs[e].textContent=(m==null)?'–':fmt(m,1); });
+      if(showRes){ var mf=calcMF(c,a.id); mfTd.textContent=(mf==null)?'–':fmt(mf,1); }
+    }
+    vis.forEach(function(e){
+      tk[e].forEach(function(t,i){ tr.append(h('td',{class:'tk'+(i===0?' ebeg':'')},cellBtn(t,a))); });
+      [['p','Participação'],['q','Postura acadêmica']].forEach(function(k,ki){
+        var v=(k[0]==='p')?partPts(c,a.id,e):postPts(c,a.id,e);
+        if(conf){ tr.append(maskTd('lvc'+((ki===0&&tk[e].length===0)?' ebeg':''),v,(k[0]==='p')?PARTE.part:PARTE.post)); return; }
+        tr.append(h('td',{class:'lvc'+((ki===0&&tk[e].length===0)?' ebeg':'')},
+          h('button',{type:'button',class:'lvbtn','aria-label':k[1]+' de '+a.nome+', '+e+'ª etapa: abrir as 10 aulas',title:'Lançar as 10 aulas',
+            onclick:function(){openAulas(a,e,k[0]);}},(v==null)?'–':fmt(v,1))));
+      });
+      if(conf){
+        tr.append(maskTd('subc',subtotal(c,a.id,e),PARTE.total), maskTd('avc',numOrNull(getAv(c.id,a.id)[e===1?'a1':'a2']),100));
+        refs[e]=maskTd('mdc',mediaEtapa(c,a.id,e),100); tr.append(refs[e]);
+        return;
+      }
+      var st=subtotal(c,a.id,e);
+      tr.append(h('td',{class:'subc',title:'Soma simples: tarefas + participação + postura acadêmica (máximo 100)',text:(st==null)?'–':fmt(st,1)}));
+      tr.append(h('td',{class:'avc'},gridInput(c,a,'aval',e===1?'a1':'a2',100,e+'ª AVA',repaint)));
+      refs[e]=h('td',{class:'mdc',title:'Média '+e+': (subtotal + AVA) ÷ 2'});
+      tr.append(refs[e]);
+    });
+    if(showRes){
+      if(conf){ tr.append(maskTd('avc ebeg',numOrNull(getAv(c.id,a.id).rec),100), maskTd('mfc',calcMF(c,a.id),state.cfg.mfComb==='soma'?200:100)); }
+      else {
+        tr.append(h('td',{class:'avc ebeg'},gridInput(c,a,'aval','rec',100,'REC',repaint)));
+        tr.append(mfTd);
+      }
+    }
+    repaint();
+    body.append(tr);
+  });
+  wrap.append(h('table',{},h('thead',{},h1,h2),body));
+  wrap.scrollLeft=sl; wrap.scrollTop=stp;
+}
+
+/* ---------- Balão que expande ao clicar na célula da tarefa ---------- */
+var pop=null, popAnchor=null;
+function popPlace(){
+  if(!pop||!popAnchor) return;
+  var r=popAnchor.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+  var vw=window.innerWidth, vh=window.innerHeight;
+  var left=Math.min(Math.max(8,r.left),Math.max(8,vw-pw-8));
+  var top=r.bottom+6; if(top+ph>vh-8) top=Math.max(8,r.top-ph-6);
+  pop.style.left=left+'px'; pop.style.top=top+'px';
+}
+function popOutside(e){ if(pop && !pop.contains(e.target) && !(popAnchor&&popAnchor.contains(e.target))) closePop(false); }
+function popKey(e){ if(e.key==='Escape' && pop){ e.stopPropagation(); closePop(true); } }
+function popScroll(e){ if(pop && !pop.contains(e.target)) popPlace(); }
+function closePop(refocus){
+  if(!pop) return;
+  var a=popAnchor;
+  pop.remove(); pop=null; popAnchor=null;
+  document.removeEventListener('mousedown',popOutside,true);
+  document.removeEventListener('keydown',popKey,true);
+  document.removeEventListener('scroll',popScroll,true);
+  window.removeEventListener('resize',popPlace);
+  if(refocus && a && document.body.contains(a)) a.focus();
+}
+function openPop(anchor,node,focusSel){
+  closePop(false);
+  popAnchor=anchor;
+  pop=h('div',{class:'pop',role:'dialog','aria-label':'Registrar entrega'},node);
+  document.body.append(pop);
+  popPlace();
+  document.addEventListener('mousedown',popOutside,true);
+  document.addEventListener('keydown',popKey,true);
+  document.addEventListener('scroll',popScroll,true);
+  window.addEventListener('resize',popPlace);
+  if(focusSel){ var f=pop.querySelector(focusSel); if(f) f.focus(); }
+}
+
+/* ---------- Registrar entrega (balão na grade ou diálogo, quando vem da ficha do aluno) ---------- */
+function openCell(task,aluno,back,anchor){
+  if(state.ui.conf){ toast(CONF_MSG); return; }
+  var key=task.id+'|'+aluno.id, r=rec(task.id,aluno.id)||{};
+  var status=STATUS[r.status]?r.status:'pendente', mx=maxOf(task), inPop=!!(anchor && !back);
+  function leave(){
+    if(back){ back(); return; }
+    if(inPop){ closePop(false); var el=document.querySelector('[data-key="'+key+'"]'); if(el) el.focus(); return; }
+    pendingFocus=key; closeDialog();
+  }
+
+  var hint=h('p',{class:'hint'}), prev=h('p',{class:'meta prev'});
+  var notaLbl=h('label',{class:'f',htmlFor:'fNota'});
+  function updReq(){ notaLbl.textContent='Nota (0 a '+fmt(mx)+')'+((status==='entregue'||status==='atrasada')?', obrigatória':''); }
+  function updHint(){
+    hint.textContent=(status==='entregue' && isOverdue(task)) ? 'O prazo desta tarefa já venceu. Marque “Com atraso” se a entrega foi depois da data.' : '';
+  }
+  var nota=h('input',{type:'text',id:'fNota',inputMode:'decimal',autocomplete:'off',placeholder:'0 a '+fmt(mx),value:fmtIn(r.nota)});
+  function updPrev(){
+    var res=parseNota(nota.value,mx);
+    if(res.ok && res.val!=null && status==='atrasada' && descPct()>0){
+      prev.textContent='Nota final: '+fmt(finalOf(status,res.val))+' ('+fmt(res.val)+' menos '+fmt(descPct())+'% por atraso).';
+    } else prev.textContent='';
+  }
+  var btns={};
+  var opts=h('div',{class:'opts',role:'group','aria-label':'Situação da entrega'});
+  ORDER.forEach(function(k){
+    var b=h('button',{type:'button',class:'opt s-'+k,'aria-pressed':String(k===status),
+      onclick:function(){ status=k; ORDER.forEach(function(o){btns[o].setAttribute('aria-pressed',String(o===k));}); updHint(); updPrev(); updReq(); }},
+      ic(STATUS[k].icon), STATUS[k].label);
+    btns[k]=b; opts.append(b);
+  });
+  nota.addEventListener('input',updPrev);
+  var obs=h('textarea',{id:'fObs',maxLength:500,rows:2,placeholder:'Opcional: observação sobre a entrega',value:r.obs||''});
+  var err=h('p',{class:'err',role:'alert'});
+  updHint(); updPrev(); updReq();
+
+  var form=h('form',{class:'dlg'+(inPop?' pop-form':''),onsubmit:function(e){
+    e.preventDefault();
+    var res=parseNota(nota.value,mx);
+    if(!res.ok){ err.textContent='A nota deve ficar entre 0 e '+fmt(mx)+'.'; nota.focus(); return; }
+    var n=res.val, o=obs.value.trim();
+    if((status==='entregue'||status==='atrasada') && n==null){ err.textContent='Informe a nota para registrar a entrega.'; nota.focus(); return; }
+    if(status==='pendente' && n==null && !o) delete state.registros[key];
+    else state.registros[key]={status:status,nota:n,obs:o,em:new Date().toISOString()};
+    persist(); render(); toast('Registro salvo.'); leave();
+  }},
+    h('h2',{text:aluno.nome}),
+    h('p',{class:'lead',text:task.titulo+', entrega '+fmtDate(task.entrega)}),
+    opts, hint,
+    notaLbl, nota, prev, err,
+    h('label',{class:'f',htmlFor:'fObs',text:'Observação'}), obs,
+    r.em?h('p',{class:'meta',text:'Último registro em '+fmtDateTime(r.em)}):null,
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:'Salvar'}),
+      h('button',{type:'button',class:'btn',onclick:function(){ if(inPop){ closePop(true); } else leave(); },text:'Cancelar'})));
+  if(inPop) openPop(anchor,form,'.opt[aria-pressed="true"]');
+  else openDialog(form,'.opt[aria-pressed="true"]');
+}
+
+/* ---------- Participação (10 aulas, 0 a 3) e postura acadêmica (10 aulas, só 0, 1 ou 2) ---------- */
+function openAulas(aluno,e,kind){
+  if(state.ui.conf){ toast(CONF_MSG); return; }
+  var c=curTurma(), key=c.id+'|'+aluno.id, fld=kind+e, isPost=(kind==='q');
+  var max=isPost?AULAS.postMax:AULAS.partMax, totalMax=isPost?PARTE.post:PARTE.part;
+  var nome=isPost?'Postura acadêmica':'Participação';
+  var cur=(state.aulas[key]||{})[fld]; cur=Array.isArray(cur)?cur:[];
+  var inputs=[], saveBtn;
+  var grid=h('div',{class:'aulas5'});
+  var sum=h('p',{class:'lv-total',role:'status'});
+  var err=h('p',{class:'err',role:'alert'});
+  function upd(){
+    var s=0;
+    inputs.forEach(function(i){ var r=parseNota(i.value,max); if(r.ok&&r.val!=null) s+=r.val; });
+    sum.textContent=nome+': '+fmt(s,2)+' de '+totalMax+'.';
+  }
+  function go(i){ var nx=inputs[i+1]; if(nx) nx.focus(); else if(saveBtn) saveBtn.focus(); }
+  for(var i=0;i<AULAS.n;i++){
+    (function(i){
+      var inp=h('input',{type:'text',inputMode:isPost?'numeric':'decimal',autocomplete:'off',id:'au'+i,placeholder:'–',
+        maxLength:isPost?2:5,'aria-label':'Aula '+(i+1)+', '+(isPost?'0, 1 ou 2':'0 a '+max),value:fmtIn(cur[i])});
+      inp.addEventListener('focus',function(){ inp.select(); });
+      inp.addEventListener('input',function(){
+        inp.removeAttribute('aria-invalid');
+        if(isPost){
+          var raw=inp.value, bad=/[^0-2]/.test(raw), clean=raw.replace(/[^0-2]/g,'').slice(-1);
+          if(clean!==raw) inp.value=clean;
+          err.textContent=bad?'A postura acadêmica aceita apenas 0, 1 ou 2.':'';
+          if(clean!=='' && !bad) go(i);
+        } else if(inp.value.trim()!==''){
+          var r=parseNota(inp.value,max);
+          if(!r.ok){ inp.setAttribute('aria-invalid','true'); err.textContent='Aula '+(i+1)+': use um valor entre 0 e '+max+'.'; }
+          else err.textContent='';
+        } else err.textContent='';
+        upd();
+      });
+      inp.addEventListener('keydown',function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); go(i); } });
+      inputs.push(inp);
+      grid.append(h('div',{class:'aula'},h('label',{htmlFor:'au'+i,text:'Aula '+(i+1)}),inp));
+    })(i);
+  }
+  upd();
+
+  var form=h('form',{class:'dlg',onsubmit:function(ev){
+    ev.preventDefault();
+    var out=[];
+    for(var i=0;i<inputs.length;i++){
+      var raw=inputs[i].value.trim();
+      if(isPost && raw!=='' && !/^[0-2]$/.test(raw)){ inputs[i].setAttribute('aria-invalid','true'); err.textContent='Aula '+(i+1)+': a postura acadêmica aceita apenas 0, 1 ou 2.'; inputs[i].focus(); return; }
+      var r=parseNota(raw,max);
+      if(!r.ok){ inputs[i].setAttribute('aria-invalid','true'); err.textContent='Aula '+(i+1)+': use um valor entre 0 e '+max+'.'; inputs[i].focus(); return; }
+      out.push(r.val);
+    }
+    var bag=state.aulas[key]||{}; bag[fld]=out;
+    if(bagEmpty(bag)) delete state.aulas[key]; else state.aulas[key]=bag;
+    persist(); render(); closeDialog(); toast(nome+' salva.');
+  }},
+    h('h2',{text:nome+', '+e+'ª etapa'}),
+    h('p',{class:'lead',text:aluno.nome+'. '+(isPost?'Cada uma das 10 aulas aceita apenas 0, 1 ou 2, somando até '+PARTE.post+'.':'Cada uma das 10 aulas vai de 0 a '+max+', somando até '+PARTE.part+'.')}),
+    grid, sum, err,
+    h('div',{class:'foot'},
+      (saveBtn=h('button',{type:'submit',class:'btn primary',text:'Salvar '+nome.toLowerCase()})),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form,'#au0');
+}
+
+/* ---------- Diálogo: lançar entregas e notas de uma tarefa ---------- */
+function openLaunch(task){
+  if(state.ui.conf){ toast(CONF_MSG); return; }
+  var c=curTurma(), mx=maxOf(task), rows=[], saveBtn;
+  var tbody=h('tbody');
+  c.alunos.forEach(function(a,idx){
+    var r=rec(task.id,a.id)||{}, st=STATUS[r.status]?r.status:'pendente';
+    var sel=h('select',{'aria-label':'Situação de '+a.nome});
+    ['pendente','entregue','atrasada','nao'].forEach(function(k){ sel.append(h('option',{value:k,text:STATUS[k].label})); });
+    sel.value=st;
+    var nota=h('input',{type:'text',class:'nt',inputMode:'decimal',autocomplete:'off','aria-label':'Nota de '+a.nome,placeholder:'–',value:fmtIn(r.nota)});
+    var fin=h('span',{class:'fin','aria-label':'Nota final de '+a.nome});
+    function reqMark(){
+      var del=(sel.value==='entregue'||sel.value==='atrasada');
+      nota.placeholder=del?'obrigatória':'–';
+      nota.setAttribute('aria-required',del?'true':'false');
+    }
+    function upd(){
+      reqMark();
+      var res=parseNota(nota.value,mx);
+      if(!res.ok||res.val==null){ fin.textContent='–'; fin.className='fin'; fin.title=''; return; }
+      var f=finalOf(sel.value,res.val), desc=(sel.value==='atrasada'&&descPct()>0);
+      fin.textContent=fmt(f); fin.className='fin'+(desc?' desc':'');
+      fin.title=desc?fmt(res.val)+' menos '+fmt(descPct())+'% por atraso':'';
+    }
+    nota.addEventListener('input',function(){
+      nota.removeAttribute('aria-invalid');
+      if(nota.value.trim()!=='' && sel.value==='pendente') sel.value='entregue';
+      upd();
+    });
+    sel.addEventListener('change',upd);
+    nota.addEventListener('keydown',function(e){
+      if(e.key!=='Enter') return;
+      e.preventDefault();
+      var nx=rows[idx+1]; if(nx) nx.nota.focus(); else if(saveBtn) saveBtn.focus();
+    });
+    upd();
+    rows.push({aluno:a,sel:sel,nota:nota,r:r});
+    tbody.append(h('tr',{},
+      h('td',{},h('span',{class:'n',text:a.nome}),h('span',{class:'m',text:a.matricula?'Matrícula '+a.matricula:'Sem matrícula'})),
+      h('td',{},sel), h('td',{},nota), h('td',{class:'fintd'},fin)));
+  });
+
+  var mail=h('textarea',{readOnly:true,class:'mailbox',hidden:true,'aria-label':'E-mails dos pendentes'});
+  var err=h('p',{class:'err',role:'alert'});
+  function pending(){ return rows.filter(function(x){return x.sel.value==='pendente';}); }
+
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var out=[];
+    for(var i=0;i<rows.length;i++){
+      var x=rows[i], res=parseNota(x.nota.value,mx);
+      if(!res.ok){ x.nota.setAttribute('aria-invalid','true'); err.textContent='Corrija a nota de '+x.aluno.nome+': use um valor entre 0 e '+fmt(mx)+'.'; x.nota.focus(); return; }
+      var entregue=(x.sel.value==='entregue'||x.sel.value==='atrasada');
+      var antigo=(x.r.status===x.sel.value && (x.r.nota==null||x.r.nota==='') && res.val==null);
+      if(entregue && res.val==null && !antigo){ x.nota.setAttribute('aria-invalid','true'); err.textContent='Informe a nota de '+x.aluno.nome+' para registrar a entrega.'; x.nota.focus(); return; }
+      out.push(res.val);
+    }
+    err.textContent='';
+    var changed=0;
+    rows.forEach(function(x,i){
+      var key=task.id+'|'+x.aluno.id, nota=out[i], st=x.sel.value, old=x.r;
+      var oldNota=(old.nota==null||old.nota==='')?null:Number(old.nota);
+      if(st==='pendente' && nota==null && !(old.obs)){
+        if(state.registros[key]){ delete state.registros[key]; changed++; }
+        return;
+      }
+      if(old.status===st && oldNota===nota) return;
+      state.registros[key]={status:st,nota:nota,obs:old.obs||'',em:new Date().toISOString()}; changed++;
+    });
+    persist(); render(); closeDialog();
+    toast(changed?changed+' '+plural(changed,'lançamento salvo','lançamentos salvos')+'.':'Nada foi alterado.');
+  }},
+    h('h2',{text:task.titulo}),
+    h('p',{class:'lead',text:'Entrega em '+fmtDate(task.entrega)+', valor máximo '+fmt(mx)+'. Escolha a situação e digite a nota de cada aluno. Ao marcar Entregue ou Com atraso, a nota é obrigatória.'+(descPct()>0?' Entrega com atraso perde '+fmt(descPct())+'% da nota inserida.':'')}),
+    h('div',{class:'actions'},
+      h('button',{type:'button',class:'btn',onclick:function(){
+        var emails=pending().map(function(x){return x.aluno.email;}).filter(Boolean).join('; ');
+        if(!emails){ toast('Nenhum pendente com e-mail cadastrado.'); return; }
+        mail.value=emails;
+        function manual(){ mail.hidden=false; mail.focus(); mail.select(); toast('Selecionei os e-mails. Use Ctrl+C para copiar.'); }
+        if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(emails).then(function(){toast('E-mails copiados.');},manual); } else manual();
+      },text:'Copiar e-mails dos pendentes'})),
+    mail,
+    h('div',{class:'launch-scroll'},
+      h('table',{class:'launch'},
+        h('thead',{},h('tr',{},h('th',{scope:'col',text:'Aluno'}),h('th',{scope:'col',text:'Situação'}),h('th',{scope:'col',text:'Nota (0 a '+fmt(mx)+')'}),h('th',{scope:'col',text:'Nota final'}))),
+        tbody)),
+    err,
+    h('div',{class:'foot'},
+      (saveBtn=h('button',{type:'submit',class:'btn primary',text:'Salvar lançamentos'})),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'}),
+      h('span',{class:'grow'}),
+      h('button',{type:'button',class:'btn',onclick:function(){openTask(task);},text:'Editar tarefa'})));
+  openDialog(form,'.nt',true);
+}
+
+/* ---------- Diálogo: tarefa ---------- */
+function openTask(task,etapaPadrao){
+  var isNew=!task, c=curTurma(); if(!c){ toast('Importe uma turma primeiro.'); return; }
+  var t=task||{id:uid(),turmaId:c.id,titulo:'',descricao:'',entrega:addDays(todayISO(),7),max:25,etapa:(etapaPadrao===2?2:1)};
+  var titulo=h('input',{type:'text',id:'tTit',required:true,maxLength:120,value:t.titulo,placeholder:'Ex.: Lista 1, derivadas'});
+  var entrega=h('input',{type:'date',id:'tEnt',required:true,value:t.entrega});
+  var max=h('input',{type:'text',id:'tMax',inputMode:'decimal',autocomplete:'off',value:fmtIn(maxOf(t))});
+  var etp=h('select',{id:'tEtp'},h('option',{value:'1',text:'1ª etapa (antes da 1ª AVA)'}),h('option',{value:'2',text:'2ª etapa (antes da 2ª AVA)'}));
+  etp.value=String(t.etapa===2?2:1);
+  var desc=h('textarea',{id:'tDesc',maxLength:800,placeholder:'Opcional: o que os alunos devem entregar',value:t.descricao||''});
+  var err=h('p',{class:'err',role:'alert'});
+
+  var delBtn=null;
+  if(!isNew){
+    delBtn=h('button',{type:'button',class:'btn danger'});
+    twoStep(delBtn,'Excluir tarefa','Confirmar exclusão',function(){
+      state.tarefas=state.tarefas.filter(function(x){return x.id!==t.id;});
+      Object.keys(state.registros).forEach(function(k){ if(k.indexOf(t.id+'|')===0) delete state.registros[k]; });
+      persist(); render(); closeDialog(); toast('Tarefa excluída.');
+    });
+  }
+
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var ti=titulo.value.trim(), mx=Number(String(max.value).replace(',','.'));
+    if(!ti){ err.textContent='Dê um título para a tarefa.'; titulo.focus(); return; }
+    if(!entrega.value){ err.textContent='Escolha a data de entrega.'; entrega.focus(); return; }
+    if(!(mx>0)){ err.textContent='O valor máximo precisa ser maior que zero.'; max.focus(); return; }
+    t.titulo=ti; t.entrega=entrega.value; t.max=mx; t.descricao=desc.value.trim(); t.etapa=(etp.value==='2')?2:1;
+    if(isNew) state.tarefas.push(t);
+    persist(); render(); closeDialog(); toast(isNew?'Tarefa criada.':'Tarefa atualizada.');
+  }},
+    h('h2',{text:isNew?'Nova tarefa':'Editar tarefa'}),
+    h('p',{class:'lead',text:'Turma '+tName(c)+', '+c.curso}),
+    isNew?null:h('button',{type:'button',class:'btn primary',onclick:function(){openLaunch(t);},text:'Lançar entregas e notas'}),
+    h('label',{class:'f',htmlFor:'tTit',text:'Título'}), titulo,
+    h('label',{class:'f',htmlFor:'tEtp',text:'Etapa'}), etp,
+    h('div',{class:'two'},
+      h('div',{},h('label',{class:'f',htmlFor:'tEnt',text:'Data de entrega'}),entrega),
+      h('div',{},h('label',{class:'f',htmlFor:'tMax',text:'Valor máximo (as tarefas da etapa somam 50)'}),max)),
+    h('label',{class:'f',htmlFor:'tDesc',text:'Descrição'}), desc, err,
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:isNew?'Criar tarefa':'Salvar alterações'}),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'}),
+      h('span',{class:'grow'}), delBtn));
+  openDialog(form,'#tTit');
+}
+
+/* ---------- Diálogo: aluno ---------- */
+function openStudent(aluno){
+  if(state.ui.conf){ toast(CONF_MSG); return; }
+  var c=curTurma(), tasks=tasksOf(c.id), m=mediaAluno(tasks,aluno.id);
+  var nome=h('input',{type:'text',id:'sNome',required:true,maxLength:120,value:aluno.nome});
+  var mat=h('input',{type:'text',id:'sMat',maxLength:20,value:aluno.matricula});
+  var mail=h('input',{type:'email',id:'sMail',maxLength:120,value:aluno.email||''});
+  var err=h('p',{class:'err',role:'alert'});
+  var list=h('table',{class:'mini'});
+  if(!tasks.length) list.append(h('tr',{},h('td',{class:'meta',text:'Ainda não há tarefas nesta turma.'})));
+  tasks.forEach(function(t){
+    var st=statusOf(t,aluno.id), over=(st==='pendente'&&isOverdue(t)), nt=notaTxt(t,rec(t.id,aluno.id));
+    list.append(h('tr',{},h('td',{},
+      h('button',{type:'button',class:'cell s-'+(over?'vencida':st),
+        'aria-label':t.titulo+': '+(over?'Vencida':STATUS[st].label)+'. Abrir registro',
+        onclick:function(){ openCell(t,aluno,function(){openStudent(aluno);}); }},
+        ic(over?'alert':STATUS[st].icon), h('span',{class:'lbl',text:t.titulo}),
+        h('span',{text:over?'Vencida':STATUS[st].label}), nt?h('span',{class:'nota',text:nt}):null))));
+  });
+  var del=h('button',{type:'button',class:'btn danger'});
+  twoStep(del,'Remover aluno','Confirmar remoção',function(){
+    c.alunos=c.alunos.filter(function(a){return a.id!==aluno.id;});
+    Object.keys(state.registros).forEach(function(k){ if(k.split('|')[1]===aluno.id) delete state.registros[k]; });
+    persist(); render(); closeDialog(); toast('Aluno removido da turma.');
+  });
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var n=nome.value.trim(); if(!n){ err.textContent='O nome não pode ficar vazio.'; nome.focus(); return; }
+    aluno.nome=n; aluno.matricula=mat.value.trim(); aluno.email=mail.value.trim();
+    c.alunos.sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');});
+    persist(); render(); toast('Dados do aluno salvos.'); openStudent(aluno);
+  }},
+    h('h2',{text:aluno.nome}),
+    h('p',{class:'lead',text:'MF: '+(calcMF(c,aluno.id)==null?'ainda sem cálculo':fmt(calcMF(c,aluno.id),1)+(state.cfg.mfComb==='soma'?' de 200':' de 100'))}),
+    h('div',{class:'sect',style:'margin-top:0;padding-top:0;border-top:0'},
+      h('h3',{text:'Entregas'}), list),
+    h('div',{class:'sect'},
+      h('h3',{text:'Dados do aluno'}),
+      h('label',{class:'f',htmlFor:'sNome',text:'Nome'}), nome,
+      h('div',{class:'two'},
+        h('div',{},h('label',{class:'f',htmlFor:'sMat',text:'Matrícula'}),mat),
+        h('div',{},h('label',{class:'f',htmlFor:'sMail',text:'E-mail'}),mail)), err),
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:'Salvar dados'}),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Fechar'}),
+      h('span',{class:'grow'}), del));
+  openDialog(form);
+}
+
+/* ---------- Diálogo: adicionar alunos ---------- */
+function parseLine(line){
+  line=line.trim(); if(!line) return null;
+  var em=line.match(/[^\s;,\t]+@[^\s;,\t]+\.[^\s;,\t]+/), email=em?em[0]:'', rest=email?line.replace(email,' '):line;
+  var mm=rest.match(/(^|[\s;,\t])(\d{4,})(?=$|[\s;,\t])/), mat=mm?mm[2]:'';
+  if(mat) rest=rest.replace(mat,' ');
+  var nome=rest.replace(/[;,\t]+/g,' ').replace(/\s+/g,' ').trim();
+  if(!nome) return null;
+  return {matricula:mat, nome:titleCase(nome), email:email};
+}
+function mergeStudent(c,p){
+  var nn=norm(p.nome);
+  function prefix(a,b){ return a===b || (a.length<b.length && b.indexOf(a+' ')===0); }
+  var target=null;
+  if(p.matricula){ target=c.alunos.filter(function(a){return a.matricula===p.matricula;})[0]||null; }
+  if(!target){
+    var cands=c.alunos.filter(function(a){
+      if(a.matricula && p.matricula) return false;
+      var an=norm(a.nome); return prefix(an,nn)||prefix(nn,an);
+    });
+    if(cands.length>1){ var ex=cands.filter(function(a){return norm(a.nome)===nn;}); cands=ex.length===1?ex:[]; }
+    target=cands[0]||null;
+  }
+  if(!target){
+    c.alunos.push({id:'a'+(p.matricula||uid()),matricula:p.matricula,nome:p.nome,email:p.email});
+    return 'added';
+  }
+  var changed=false;
+  if(!target.matricula && p.matricula){ target.matricula=p.matricula; changed=true; }
+  if(!target.email && p.email){ target.email=p.email; changed=true; }
+  var tn=norm(target.nome);
+  if(nn.length>tn.length && prefix(tn,nn)){ target.nome=p.nome; changed=true; }
+  return changed?'updated':'same';
+}
+function openAddStudents(){
+  var c=curTurma(); if(!c){ toast('Importe uma turma primeiro.'); return; }
+  var ta=h('textarea',{id:'aTxt',rows:8,placeholder:'2900001 MARIA DA SILVA EXEMPLO maria.exemplo@email.com'});
+  var err=h('p',{class:'err',role:'alert'});
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var cnt={added:0,updated:0,same:0}, any=false;
+    ta.value.split(/\r?\n/).forEach(function(l){
+      var p=parseLine(l); if(!p) return;
+      any=true; cnt[mergeStudent(c,p)]++;
+    });
+    if(!any){ err.textContent='Não encontrei nenhum aluno no texto. Escreva uma linha por aluno.'; ta.focus(); return; }
+    c.alunos.sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');});
+    persist(); render(); closeDialog();
+    var parts=[];
+    if(cnt.added) parts.push(cnt.added+' '+plural(cnt.added,'aluno adicionado','alunos adicionados'));
+    if(cnt.updated) parts.push(cnt.updated+' '+plural(cnt.updated,'aluno completado','alunos completados'));
+    if(cnt.same) parts.push(cnt.same+' '+plural(cnt.same,'já estava igual','já estavam iguais'));
+    toast(parts.join(', ')+'.');
+  }},
+    h('h2',{text:'Adicionar ou completar alunos'}),
+    h('p',{class:'lead',text:'Turma '+tName(c)+'. Cole uma linha por aluno com matrícula, nome e e-mail, separados por espaço, tab, vírgula ou ponto e vírgula. Quem já está na turma tem a matrícula, o nome completo e o e-mail preenchidos quando estavam faltando.'}),
+    h('label',{class:'f',htmlFor:'aTxt',text:'Lista de alunos'}), ta, err,
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:'Aplicar à turma'}),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form,'#aTxt');
+}
+
+/* ---------- Reorganizar turmas (replicar tarefas, mover alunos sem matrícula, trocar Participação) ---------- */
+var SNAP_KEY=KEY+'-antes-da-reorganizacao';
+function reorgPlan(){
+  var t1=state.turmas[0], t2=state.turmas[1];
+  if(!t1||!t2) return null;
+  var p={t1:t1,t2:t2};
+  p.part=state.tarefas.filter(function(t){ return norm(t.titulo)==='participacao' && (t.turmaId===t1.id||t.turmaId===t2.id); });
+  p.partNotas=0;
+  p.part.forEach(function(t){
+    Object.keys(state.registros).forEach(function(k){
+      var r=state.registros[k];
+      if(k.indexOf(t.id+'|')===0 && r && r.nota!=null && r.nota!=='') p.partNotas++;
+    });
+  });
+  p.sem=t1.alunos.filter(function(a){ return !a.matricula; });
+  var titles2=tasksOf(t2.id).map(function(t){return norm(t.titulo);});
+  p.rep=tasksOf(t1.id).filter(function(t){ return norm(t.titulo)!=='participacao' && titles2.indexOf(norm(t.titulo))<0; });
+  p.any=!!(p.part.length||p.sem.length||p.rep.length);
+  return p;
+}
+
+function applyReorg(p,opts){
+  try{ localStorage.setItem(SNAP_KEY,JSON.stringify(state)); }catch(e){}
+  var t1=p.t1, t2=p.t2, sum={part:0,rep:0,mov:0};
+
+  if(opts.part){
+    p.part.forEach(function(t){
+      Object.keys(state.registros).forEach(function(k){ if(k.indexOf(t.id+'|')===0) delete state.registros[k]; });
+      state.tarefas=state.tarefas.filter(function(x){return x.id!==t.id;});
+      sum.part++;
+    });
+  }
+
+  var map={};
+  if(opts.rep || opts.mov){
+    tasksOf(t1.id).forEach(function(t){
+      var ex=tasksOf(t2.id).filter(function(x){return norm(x.titulo)===norm(t.titulo);})[0];
+      if(!ex){
+        ex={id:uid(),turmaId:t2.id,titulo:t.titulo,descricao:t.descricao||'',entrega:t.entrega,max:t.max,etapa:(t.etapa===2?2:1)};
+        state.tarefas.push(ex); sum.rep++;
+      }
+      map[t.id]=ex.id;
+    });
+  }
+
+  if(opts.mov){
+    p.sem.forEach(function(a){
+      var ex=t2.alunos.filter(function(x){return norm(x.nome)===norm(a.nome);})[0];
+      var newId=ex?ex.id:a.id;
+      if(!ex) t2.alunos.push(a);
+      Object.keys(map).forEach(function(oldT){
+        var ok=oldT+'|'+a.id, r=state.registros[ok];
+        if(r){ var nk=map[oldT]+'|'+newId; if(!state.registros[nk]) state.registros[nk]=r; delete state.registros[ok]; }
+      });
+      ['aval','aulas'].forEach(function(st){
+        var ok=t1.id+'|'+a.id, v=state[st][ok];
+        if(v){ var nk=t2.id+'|'+newId; if(!state[st][nk]) state[st][nk]=v; delete state[st][ok]; }
+      });
+      t1.alunos=t1.alunos.filter(function(x){return x.id!==a.id;});
+      sum.mov++;
+    });
+    t2.alunos.sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');});
+  }
+
+  state.cfg.reorg='feito';
+  persist(); render(); refreshUndo();
+  var parts=[];
+  if(sum.part) parts.push('Tarefa Participação removida');
+  if(sum.rep) parts.push(sum.rep+' '+plural(sum.rep,'tarefa replicada','tarefas replicadas'));
+  if(sum.mov) parts.push(sum.mov+' '+plural(sum.mov,'aluno movido','alunos movidos'));
+  toast(parts.length?parts.join('. ')+'.':'Nada precisou mudar.');
+}
+
+function openReorg(auto){
+  var p=reorgPlan();
+  if(!p||!p.any){ if(!auto) toast('Não há nada para reorganizar agora.'); return; }
+  var c1=p.t1.codigo, c2=p.t2.codigo;
+  function row(id,checked,title,detail,extra){
+    var cb=h('input',{type:'checkbox',id:id,checked:checked});
+    return {cb:cb,el:h('label',{class:'rg',htmlFor:id},cb,h('span',{},h('strong',{text:title}),h('span',{class:'d',text:detail}),extra||null))};
+  }
+  function names(list,fn){ return h('ul',{class:'mini-list'},list.map(function(x){return h('li',{text:fn(x)});})); }
+
+  var rPart=null, rRep=null, rMov=null, blocks=[];
+  if(p.part.length){
+    rPart=row('rPart',p.partNotas===0,'Trocar a tarefa “Participação” pelas colunas de Participação e Postura acadêmica',
+      'Participação (10 aulas, até 30) e Postura acadêmica (10 aulas, até 20) já existem em todas as turmas. '+
+      (p.partNotas? 'Atenção: a tarefa tem '+p.partNotas+' '+plural(p.partNotas,'nota lançada','notas lançadas')+', que serão apagadas. Marque só se puder descartá-las.' : 'A tarefa não tem notas lançadas.'));
+    blocks.push(rPart.el);
+  }
+  if(p.rep.length){
+    rRep=row('rRep',true,'Replicar na turma '+c2+' as tarefas da turma '+c1,
+      'Copia só o título, a data e o valor, sem notas.', names(p.rep,function(t){return t.titulo;}));
+    blocks.push(rRep.el);
+  }
+  if(p.sem.length){
+    rMov=row('rMov',true,'Mover '+p.sem.length+' '+plural(p.sem.length,'aluno sem matrícula','alunos sem matrícula')+' da turma '+c1+' para a turma '+c2,
+      'Os resultados vão junto (tarefas, nota livre e avaliações) e eles saem da turma '+c1+'.', names(p.sem,function(a){return a.nome;}));
+    blocks.push(rMov.el);
+  }
+  if(rMov && rRep){
+    rMov.cb.addEventListener('change',function(){ if(rMov.cb.checked){ rRep.cb.checked=true; rRep.cb.disabled=true; } else rRep.cb.disabled=false; });
+    if(rMov.cb.checked){ rRep.cb.disabled=true; }
+  }
+
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var o={part:!!(rPart&&rPart.cb.checked), rep:!!(rRep&&rRep.cb.checked), mov:!!(rMov&&rMov.cb.checked)};
+    if(!o.part&&!o.rep&&!o.mov){ toast('Marque ao menos uma opção.'); return; }
+    applyReorg(p,o); closeDialog();
+  }},
+    h('h2',{text:'Reorganizar as turmas'}),
+    h('p',{class:'lead',text:'Encontrei ajustes entre a turma '+c1+' e a turma '+c2+'. Marque o que quer aplicar. Uma cópia dos dados atuais fica guardada e dá para desfazer.'}),
+    blocks,
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:'Aplicar'}),
+      h('button',{type:'button',class:'btn',onclick:function(){ state.cfg.reorg='dispensado'; persist(); closeDialog(); },text:'Agora não'})));
+  openDialog(form,null,true);
+}
+
+function refreshUndo(){
+  var has=false, has2=false;
+  try{ has=!!localStorage.getItem(SNAP_KEY); has2=!!localStorage.getItem(KEY+'-antes-do-reset'); }catch(e){}
+  $('#btnUndoReorg').disabled=!has;
+  var b=$('#btnUndoReset'); if(b) b.disabled=!has2;
+}
+function undoReorg(){
+  var raw=null;
+  try{ raw=localStorage.getItem(SNAP_KEY); }catch(e){}
+  if(!raw){ toast('Não há reorganização para desfazer.'); return; }
+  try{
+    var snap=JSON.parse(raw); if(!valid(snap)) throw new Error('inválido');
+    state=normalize(snap); state.cfg.reorg='dispensado';
+    localStorage.removeItem(SNAP_KEY);
+    persist(); render(); refreshUndo(); toast('Reorganização desfeita.');
+  }catch(e){ toast('Não consegui desfazer.'); }
+}
+
+/* ---------- Importar PDF da listagem de alunos (Portal do Docente) ---------- */
+var PDFJS_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+var PDFJS_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+var SMALL2={de:1,da:1,do:1,das:1,dos:1,e:1,em:1,para:1,a:1,o:1};
+function tituloCurso(s){
+  return String(s||'').toLowerCase().split(/\s+/).filter(Boolean).map(function(w,i){
+    return (i>0 && SMALL2[w]) ? w : w.charAt(0).toUpperCase()+w.slice(1);
+  }).join(' ');
+}
+function isoFromBr(s){ var m=/^(\d\d)\/(\d\d)\/(\d{4})$/.exec(s||''); return m ? m[3]+'-'+m[2]+'-'+m[1] : ''; }
+function tName(c){ return (c.componente||'Cálculo')+' '+c.codigo; }
+function slug(s){ return norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+
+function loadPdfJs(){
+  function ready(){ return !!(window.pdfjsLib && window.pdfjsLib.getDocument); }
+  function cfg(){ window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER; }
+  if(ready()){ cfg(); return Promise.resolve(); }
+  return loadScript(PDFJS_URL).then(function(){ if(!ready()) throw new Error('pdf.js indisponível'); cfg(); });
+}
+function groupRows(items){
+  var its=items.filter(function(i){return i.str && i.str.trim()!=='';}).map(function(i){
+    return {s:i.str,x:i.transform[4],y:i.transform[5],w:i.width||0};
+  });
+  its.sort(function(a,b){return b.y-a.y||a.x-b.x;});
+  var rows=[];
+  its.forEach(function(it){
+    var r=null;
+    for(var k=0;k<rows.length;k++){ if(Math.abs(rows[k].y-it.y)<=2.5){ r=rows[k]; break; } }
+    if(!r){ r={y:it.y,its:[]}; rows.push(r); }
+    r.its.push(it);
+  });
+  rows.sort(function(a,b){return b.y-a.y;});
+  return rows.map(function(r){
+    r.its.sort(function(a,b){return a.x-b.x;});
+    var t='', prev=null;
+    r.its.forEach(function(i){ if(prev && i.x-(prev.x+prev.w)>1) t+=' '; t+=i.s; prev=i; });
+    return t.replace(/\s+/g,' ').trim();
+  });
+}
+function pdfRows(file){
+  return loadPdfJs().then(function(){ return file.arrayBuffer(); }).then(function(buf){
+    return window.pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+  }).then(function(pdf){
+    var pages=[], chain=Promise.resolve();
+    for(var n=1;n<=pdf.numPages;n++){
+      (function(n){
+        chain=chain.then(function(){ return pdf.getPage(n); })
+          .then(function(pg){ return pg.getTextContent(); })
+          .then(function(tc){ pages.push(groupRows(tc.items)); });
+      })(n);
+    }
+    return chain.then(function(){ return pages; });
+  });
+}
+
+/* lê o cabeçalho e a tabela de alunos da listagem do Portal do Docente */
+function parseListagem(pages){
+  var rows=[].concat.apply([],pages), joined=rows.join('\n');
+  function g(re){ var x=re.exec(joined); return x ? x[1].trim() : ''; }
+  var meta={
+    evento:g(/EVENTO\/CURSO\.*\s*([0-9\/]+\s*-\s*.+?)(?=\s+Turma:|\n|$)/),
+    modalidade:g(/MODALIDADE\.*\s*(\d+\s*-\s*.+?)(?=\s+DATA IN[IÍ]CIO|\n|$)/),
+    modulo:g(/M[ÓO]DULO\.*\s*(\d+\s*-\s*.+?)(?=\s+DATA T[EÉ]RMINO|\n|$)/),
+    etapa:g(/ETAPA\.*\s*(\d+\s*-\s*.+?)(?=\s+Carga hor|\n|$)/),
+    docente:g(/DOCENTE\.*\s*(\d+\s*-\s*.+?)(?=\s+HORA T|\n|$)/),
+    turma:g(/Turma:\s*([\d\/]+)/)
+  };
+  var comp=/COMP\.\s*(\d+)\s*-\s*(.+?)(?=\s+HORA IN|\n|$)/.exec(joined);
+  var ini=g(/DATA IN[IÍ]CIO:\s*(\d\d\/\d\d\/\d{4})/), fim=g(/DATA T[EÉ]RMINO:\s*(\d\d\/\d\d\/\d{4})/);
+  var hi=g(/HORA IN[IÍ]CIO:\s*(\d\d:\d\d)/), hf=g(/HORA T[EÉ]RMINO:\s*(\d\d:\d\d)/), carga=g(/Carga hor[aá]ria\s+(\d+:\d\d)/);
+  meta.termino=isoFromBr(fim);
+  meta.horario=(hi&&hf)?hi+' às '+hf:'';
+  meta.carga=carga?carga.replace(/^0+(\d)/,'$1')+' h':'';
+  for(var i=0;i<rows.length;i++){
+    if(/^DEPARTAMENTO REGIONAL/i.test(rows[i])){ meta.regional=rows[i]; if(rows[i+1] && !/^LISTAGEM/i.test(rows[i+1])) meta.unidade=rows[i+1]; break; }
+  }
+  var cursoRaw=meta.evento.replace(/^[\d\/]+\s*-\s*/,'');
+
+  var alunos=[], achouCab=false;
+  pages.forEach(function(pg){
+    var on=false;
+    pg.forEach(function(r){
+      if(/Nome do Aluno/i.test(r)){ on=true; achouCab=true; return; }
+      if(/^Portal do Docente/i.test(r) || /^P[áa]gina\s*:?\s*\d/i.test(r)){ on=false; return; }
+      if(!on) return;
+      var m=/^(\d{4,})\s+(.+?)\s+([^\s@]+@[^\s@]+\.[^\s@]+)\s*$/.exec(r) || /^(\d{4,})\s+(.+?)\s*()$/.exec(r);
+      if(m) alunos.push({matricula:m[1],nome:titleCase(m[2]),email:(m[3]||'').toLowerCase()});
+    });
+  });
+  var generico=false;
+  if(!alunos.length && !achouCab){
+    /* PDF em outro formato: aceita linhas com cara de nome, com ou sem matrícula e e-mail */
+    rows.forEach(function(r){
+      if(/SENAI|DEPARTAMENTO|LISTAGEM|PORTAL|P[ÁA]GINA|TURMA|CURSO|M[ÓO]DULO|DOCENTE|E-?MAIL/i.test(r)) return;
+      var p=parseLine(r);
+      if(p && p.nome.split(' ').length>=2 && /^[A-Za-zÀ-ÿ' .\-]+$/.test(p.nome)) alunos.push(p);
+    });
+    generico=alunos.length>0;
+  }
+  return {
+    meta:meta, alunos:alunos, generico:generico,
+    curso:tituloCurso(cursoRaw), codigo:comp?comp[1]:(meta.turma||''), componente:tituloCurso(comp?comp[2]:''),
+    inicio:isoFromBr(ini)
+  };
+}
+
+function findTurma(curso,codigo){
+  return state.turmas.filter(function(t){ return t.codigo===codigo && t.curso===curso; })[0]||null;
+}
+function ensureCurso(nome){ if(state.cursos.indexOf(nome)<0) state.cursos.push(nome); }
+function newTurmaId(cod){
+  var id='c'+cod;
+  return state.turmas.some(function(t){return t.id===id;}) ? id+'-'+uid() : id;
+}
+function copyTasks(srcId,dst){
+  var n=0;
+  tasksOf(srcId).forEach(function(t){
+    state.tarefas.push({id:uid(),turmaId:dst.id,titulo:t.titulo,descricao:t.descricao||'',entrega:t.entrega,max:t.max,etapa:(t.etapa===2?2:1)});
+    n++;
+  });
+  return n;
+}
+/* cria a turma (ou atualiza a que já existe) e organiza os alunos em ordem alfabética */
+function applyImport(card){
+  var p=card.parsed, curso=card.curso.value.trim(), comp=card.comp.value.trim(), cod=card.cod.value.trim();
+  var res={created:false,slot:false,added:0,updated:0,same:0,copied:0,turma:null};
+  var t=findTurma(curso,cod);
+  var vaga=(!t && card.dest && card.dest.value) ? state.turmas.filter(function(x){return x.id===card.dest.value && x.alunos.length===0;})[0] : null;
+  if(vaga){
+    /* a nova turma ocupa o lugar da turma resetada: mantém as tarefas e troca o código, o componente e os dados do curso */
+    t=vaga; t.codigo=cod; t.componente=comp||t.componente||'Cálculo'; t.curso=curso; t.inicio=p.inicio||''; t.meta=p.meta;
+    ensureCurso(curso); res.slot=true;
+  } else if(!t){
+    t={id:newTurmaId(cod),codigo:cod,curso:curso,componente:comp||'Cálculo',inicio:p.inicio||'',meta:p.meta,alunos:[]};
+    state.turmas.push(t); ensureCurso(curso); res.created=true;
+  } else {
+    if(!t.meta) t.meta=p.meta;
+    if(!t.inicio && p.inicio) t.inicio=p.inicio;
+  }
+  p.alunos.forEach(function(a){ var r=mergeStudent(t,a); res[r]++; });
+  t.alunos.sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR');});
+  if(res.created && !res.slot && card.copy && card.copy.value) res.copied=copyTasks(card.copy.value,t);
+  state.ui.curso=curso; state.ui.turma=t.id; res.turma=t;
+  return res;
+}
+function criarTurmaVazia(curso,comp,cod){
+  var t={id:newTurmaId(cod),codigo:cod,curso:curso,componente:comp||'Cálculo',inicio:'',alunos:[]};
+  state.turmas.push(t); ensureCurso(curso);
+  state.ui.curso=curso; state.ui.turma=t.id;
+  return t;
+}
+
+function openImportPdf(){
+  var cards=[], list=h('div',{class:'imp-list'});
+  var err=h('p',{class:'err',role:'alert'});
+  var dl=h('datalist',{id:'dlCursos'},state.cursos.map(function(c){return h('option',{value:c});}));
+  var fileIn=h('input',{type:'file',id:'impFile',accept:'application/pdf,.pdf',multiple:true});
+  var go=h('button',{type:'submit',class:'btn primary',text:'Importar',disabled:true});
+
+  function modelos(){
+    return state.turmas.filter(function(t){ return tasksOf(t.id).length>0; });
+  }
+  function mkCard(file){
+    var body=h('div'), el=h('div',{class:'impcard'},h('strong',{text:file.name}),body);
+    var card={file:file,el:el,body:body,parsed:null};
+    body.append(h('p',{class:'meta',text:'Lendo o PDF…'}));
+    list.append(el); cards.push(card);
+    pdfRows(file).then(function(pages){ return parseListagem(pages); }).then(function(parsed){
+      fill(card,parsed);
+    }).catch(function(){
+      body.replaceChildren(h('p',{class:'err',text:'Não consegui ler este PDF. Confira a conexão com a internet e se o arquivo não está protegido.'}));
+    }).then(refreshGo);
+    return card;
+  }
+  function fill(card,parsed){
+    card.parsed=parsed; card.body.replaceChildren();
+    if(!parsed.alunos.length){
+      card.body.append(h('p',{class:'err',text:'Não encontrei alunos neste PDF. Ele pode ser uma imagem escaneada, sem texto.'}));
+      return;
+    }
+    card.curso=h('input',{type:'text',autocomplete:'off',value:parsed.curso||'',placeholder:'Ex.: Automação Industrial'});
+    card.curso.setAttribute('list','dlCursos');
+    card.comp=h('input',{type:'text',autocomplete:'off',value:parsed.componente||'Cálculo'});
+    card.cod=h('input',{type:'text',autocomplete:'off',value:parsed.codigo||'',placeholder:'Código da turma'});
+    card.dest=h('select',{'aria-label':'Onde colocar a turma'});
+    card.destRow=h('div',{},h('label',{class:'f',text:'Onde colocar'}),card.dest);
+    card.copy=h('select',{'aria-label':'Copiar as tarefas de'});
+    card.copy.append(h('option',{value:'',text:'Não copiar tarefas'}));
+    var ms=modelos(), cur=curTurma(), pref=null;
+    ms.forEach(function(t){
+      card.copy.append(h('option',{value:t.id,text:tName(t)+' ('+tasksOf(t.id).length+' '+plural(tasksOf(t.id).length,'tarefa','tarefas')+')'}));
+      if(!pref || (cur && t.id===cur.id)) pref=t.id;
+    });
+    if(pref) card.copy.value=pref;
+    card.info=h('p',{class:'meta'});
+    var firstUpd=true;
+    function upd(){
+      var cur=card.curso.value.trim(), t=findTurma(cur,card.cod.value.trim());
+      var vs=t ? [] : state.turmas.filter(function(x){ return x.alunos.length===0 && x.curso===cur; });
+      var keep=card.dest.value;
+      card.dest.replaceChildren(h('option',{value:'',text:'Criar uma turma nova'}));
+      vs.forEach(function(x){ card.dest.append(h('option',{value:x.id,text:'Vaga livre: '+tName(x)+' (nomes e notas já apagados)'})); });
+      if(firstUpd){ card.dest.value=vs.length?vs[0].id:''; firstUpd=false; }
+      else card.dest.value=vs.some(function(x){return x.id===keep;})?keep:'';
+      card.destRow.hidden=!vs.length;
+      var slot=!t && !!card.dest.value;
+      card.info.textContent=t
+        ? 'Já existe a turma '+tName(t)+': completo matrículas, e-mails e nomes, e incluo os alunos que faltam.'
+        : (slot ? 'Vai ocupar a vaga livre: as tarefas continuam e a turma passa a ter o código, os nomes e os dados deste PDF.'
+                : 'Vai criar uma turma nova'+(pref?', com as mesmas tarefas da turma escolhida abaixo.':'.'));
+      card.copy.disabled=!!t||slot; card.copyRow.hidden=!!t||slot||!ms.length;
+      refreshGo();
+    }
+    card.copyRow=h('div',{},h('label',{class:'f',text:'Copiar a estrutura de tarefas de'}),card.copy);
+    var nomes=parsed.alunos.map(function(a){return a.nome;});
+    card.body.append(
+      h('p',{class:'meta',text:parsed.alunos.length+' '+plural(parsed.alunos.length,'aluno encontrado','alunos encontrados')+(parsed.generico?'. O formato do PDF é diferente do Portal do Docente, então confira os nomes.':'.')}),
+      h('div',{class:'imp-fields'},
+        h('div',{},h('label',{class:'f',text:'Curso'}),card.curso),
+        h('div',{},h('label',{class:'f',text:'Componente'}),card.comp),
+        h('div',{},h('label',{class:'f',text:'Código da turma'}),card.cod)),
+      card.info, card.destRow, card.copyRow,
+      h('details',{class:'imp-names'},h('summary',{text:'Ver os nomes'}),h('ul',{class:'mini-list'},nomes.map(function(n){return h('li',{text:n});}))));
+    [card.curso,card.comp,card.cod].forEach(function(i){ i.addEventListener('input',upd); });
+    card.dest.addEventListener('change',upd);
+    upd();
+  }
+  function valid1(card){ return card.parsed && card.parsed.alunos.length && card.curso && card.curso.value.trim() && card.cod.value.trim(); }
+  function refreshGo(){ go.disabled=!cards.some(valid1); }
+
+  fileIn.addEventListener('change',function(){
+    err.textContent='';
+    Array.prototype.slice.call(fileIn.files).forEach(mkCard);
+    fileIn.value='';
+  });
+
+  /* turma vazia, sem PDF */
+  var eCurso=h('input',{type:'text',autocomplete:'off',placeholder:'Curso'}), eComp=h('input',{type:'text',autocomplete:'off',value:'Cálculo'}), eCod=h('input',{type:'text',autocomplete:'off',placeholder:'Código'});
+  eCurso.setAttribute('list','dlCursos'); eCurso.value=state.ui.curso||'';
+  var vazia=h('details',{class:'imp-names'},h('summary',{text:'Sem PDF? Criar uma turma vazia'}),
+    h('div',{class:'imp-fields'},
+      h('div',{},h('label',{class:'f',text:'Curso'}),eCurso),
+      h('div',{},h('label',{class:'f',text:'Componente'}),eComp),
+      h('div',{},h('label',{class:'f',text:'Código da turma'}),eCod)),
+    h('div',{class:'actions'},h('button',{type:'button',class:'btn',onclick:function(){
+      var cu=eCurso.value.trim(), co=eCod.value.trim();
+      if(!cu||!co){ err.textContent='Preencha o curso e o código da turma.'; return; }
+      if(findTurma(cu,co)){ err.textContent='Essa turma já existe.'; return; }
+      var t=criarTurmaVazia(cu,eComp.value.trim(),co);
+      persist(); render(); closeDialog(); toast('Turma '+tName(t)+' criada. Use “Adicionar alunos” para colar os nomes.');
+    },text:'Criar turma vazia'})));
+
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var ok=cards.filter(valid1);
+    if(!ok.length){ err.textContent='Escolha ao menos um PDF com alunos.'; return; }
+    var parts=[], last=null;
+    ok.forEach(function(card){
+      var r=applyImport(card); last=r.turma;
+      parts.push(tName(r.turma)+': '+(r.created?'turma criada, ':'')+(r.slot?'colocada na vaga livre, ':'')+r.added+' '+plural(r.added,'aluno novo','alunos novos')+(r.updated?', '+r.updated+' completados':'')+(r.copied?', '+r.copied+' '+plural(r.copied,'tarefa copiada','tarefas copiadas'):''));
+    });
+    persist(); render(); closeDialog(); toast(parts.join('. ')+'.');
+  }},
+    h('h2',{text:'Importar PDF da listagem de alunos'}),
+    h('p',{class:'lead',text:'Escolha o PDF do Portal do Docente (dá para escolher vários). Eu leio o curso, o componente, a turma e os nomes, organizo em ordem alfabética e monto a turma com as mesmas etapas, colunas e regras das outras.'}),
+    dl, h('label',{class:'f',htmlFor:'impFile',text:'Arquivo PDF'}), fileIn,
+    list, err, vazia,
+    h('div',{class:'foot'},go,h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form,'#impFile',true);
+}
+
+/* ---------- Zerar notas ou alunos de uma turma (pede a senha) ---------- */
+var SNAP_RESET=KEY+'-antes-do-reset', rsFails=0, rsLock=0;
+function pwOk(v){ return cyrb53('senai-calculo|'+String(v).trim())===PW_HASH; }
+function applyReset(c,modo){
+  try{ localStorage.setItem(SNAP_RESET,JSON.stringify(state)); }catch(e){}
+  var tids={}, n={notas:0,alunos:c.alunos.length};
+  tasksOf(c.id).forEach(function(t){ tids[t.id]=true; });
+  Object.keys(state.registros).forEach(function(k){ if(tids[k.split('|')[0]]){ delete state.registros[k]; n.notas++; } });
+  ['aval','aulas'].forEach(function(st){
+    Object.keys(state[st]).forEach(function(k){ if(k.split('|')[0]===c.id) delete state[st][k]; });
+  });
+  if(modo==='tudo') c.alunos=[];
+  return n;
+}
+function openReset(){
+  var c=curTurma(); if(!c){ toast('Não há turma neste curso.'); return; }
+  var nAl=c.alunos.length;
+  var rN=h('input',{type:'radio',name:'rsModo',value:'notas',id:'rsN'});
+  var rT=h('input',{type:'radio',name:'rsModo',value:'tudo',id:'rsT',checked:true});
+  var pw=h('input',{type:'password',id:'rsPw',inputMode:'numeric',autocomplete:'new-password',maxLength:20});
+  var err=h('p',{class:'err',role:'alert'});
+  function opt(id,inp,title,desc){ return h('label',{class:'rg',htmlFor:id},inp,h('span',{},h('strong',{text:title}),h('span',{class:'d',text:desc}))); }
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault();
+    var now=Date.now();
+    if(now<rsLock){ err.textContent='Aguarde '+Math.ceil((rsLock-now)/1000)+' segundos para tentar de novo.'; return; }
+    if(!pwOk(pw.value)){
+      rsFails++; pw.value='';
+      if(rsFails>=3){ rsLock=now+10000*(rsFails-2); err.textContent='Senha incorreta. Aguarde '+(10*(rsFails-2))+' segundos para tentar de novo.'; }
+      else err.textContent='Senha incorreta.';
+      pw.focus(); return;
+    }
+    rsFails=0;
+    var modo=rT.checked?'tudo':'notas', n=applyReset(c,modo);
+    persist(); render(); refreshUndo(); closeDialog();
+    if(modo==='tudo'){
+      toast('Notas e nomes da turma '+tName(c)+' foram resetados: a vaga está livre. Escolha o PDF da nova turma. Dá para desfazer em “Seus dados”.');
+      setTimeout(openImportPdf,250);
+    } else toast('Notas da turma '+tName(c)+' zeradas. Dá para desfazer em “Seus dados”.');
+  }},
+    h('h2',{text:'Resetar a turma '+tName(c)}),
+    h('p',{class:'lead',text:c.curso+', '+nAl+' '+plural(nAl,'aluno','alunos')+'. Só esta turma é afetada, e uma cópia dos dados fica guardada para desfazer.'}),
+    opt('rsT',rT,'Resetar notas e nomes','Apaga todos os alunos e tudo o que foi lançado para eles (entregas, notas, participação, postura, AVAs e REC). A vaga fica livre para outra turma: em seguida você escolhe o PDF da nova turma e ela entra neste mesmo lugar. As tarefas continuam.'),
+    opt('rsN',rN,'Zerar só as notas','Mantém os alunos e as tarefas e apaga apenas o que foi lançado (entregas, notas, participação, postura, AVAs e REC).'),
+    h('label',{class:'f',htmlFor:'rsPw',text:'Senha'}), pw, err,
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn danger',text:'Resetar turma'}),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form,'#rsPw');
+}
+function undoReset(){
+  var raw=null;
+  try{ raw=localStorage.getItem(SNAP_RESET); }catch(e){}
+  if(!raw){ toast('Não há reset para desfazer.'); return; }
+  try{
+    var snap=JSON.parse(raw); if(!valid(snap)) throw new Error('inválido');
+    state=normalize(snap); localStorage.removeItem(SNAP_RESET);
+    persist(); render(); refreshUndo(); toast('Reset desfeito.');
+  }catch(e){ toast('Não consegui desfazer.'); }
+}
+
+/* ---------- Arquivos: CSV, backup e PDF ---------- */
+var inClaude=!!(window.claude && typeof window.claude.use==='function');
+var dl=null;
+var dlP=inClaude
+  ? window.claude.use('downloads').then(function(d){return d||null;},function(){return null;})
+  : Promise.resolve(null);
+function enableDownloads(){
+  var ok=!!dl || !inClaude;
+  ['#btnCsv','#btnJson'].forEach(function(s){ $(s).disabled=!ok; });
+  if(!ok) $('.data p').textContent='Os registros ficam salvos neste navegador. A exportação de arquivos não está disponível nesta visualização.';
+}
+dlP.then(function(d){ dl=d; enableDownloads(); });
+
+function saveAny(name,data,mime){
+  return dlP.then(function(d){
+    if(d){
+      return d.save({filename:name,data:data}).then(function(){ toast('Arquivo salvo.'); },function(e){
+        if(e && e.code==='declined') return;
+        toast('Não foi possível salvar o arquivo.');
+      });
+    }
+    if(inClaude){ toast('Salvar arquivos não está disponível nesta visualização.'); return; }
+    var blob=(data instanceof Blob)?data:new Blob([data],{type:mime||'application/octet-stream'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=name; document.body.append(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+    toast('Arquivo baixado.');
+  });
+}
+function csvCell(v){
+  v=(v==null)?'':String(v);
+  if(/^[=+\-@]/.test(v)) v="'"+v;
+  return '"'+v.replace(/"/g,'""')+'"';
+}
+function exportCsv(){
+  var c=curTurma(); if(!c){ toast('Importe uma turma primeiro.'); return; }
+  var head=['Matrícula','Aluno','E-mail'], i;
+  ETAPAS.forEach(function(e){
+    var p=e+'ª etapa: ';
+    tasksOf(c.id,e).forEach(function(t){
+      head.push(p+t.titulo+' (entrega '+fmtDate(t.entrega)+'): situação');
+      head.push(p+t.titulo+': nota inserida (0 a '+fmt(maxOf(t))+')');
+      head.push(p+t.titulo+': nota final');
+    });
+    for(i=1;i<=AULAS.n;i++) head.push(p+'Participação aula '+i+' (0 a 3)');
+    head.push(p+'Participação (0 a 30)');
+    for(i=1;i<=AULAS.n;i++) head.push(p+'Postura acadêmica aula '+i+' (0, 1 ou 2)');
+    head.push(p+'Postura acadêmica (0 a 20)',p+'Subtotal (0 a 100)',e+'ª AVA (0 a 100)','Média '+e);
+  });
+  head.push('REC (0 a 100)','MF');
+  var rows=[head];
+  c.alunos.forEach(function(a){
+    var row=[a.matricula,a.nome,a.email], ag=getAulas(c.id,a.id), j;
+    ETAPAS.forEach(function(e){
+      tasksOf(c.id,e).forEach(function(t){
+        var r=rec(t.id,a.id), f=notaFinal(t,r);
+        row.push(STATUS[statusOf(t,a.id)].label); row.push(r&&r.nota!=null?fmt(r.nota,2):''); row.push(f==null?'':fmt(f,2));
+      });
+      for(j=0;j<AULAS.n;j++) row.push(f2(Array.isArray(ag['p'+e])?ag['p'+e][j]:null));
+      row.push(f2(partPts(c,a.id,e)));
+      for(j=0;j<AULAS.n;j++) row.push(f2(Array.isArray(ag['q'+e])?ag['q'+e][j]:null));
+      row.push(f2(postPts(c,a.id,e)),f2(subtotal(c,a.id,e)),f2(getAv(c.id,a.id)[e===1?'a1':'a2']),f2(mediaEtapa(c,a.id,e)));
+    });
+    row.push(f2(getAv(c.id,a.id).rec),f1(calcMF(c,a.id)));
+    rows.push(row);
+  });
+  var csv='\uFEFF'+rows.map(function(r){return r.map(csvCell).join(';');}).join('\r\n');
+  saveAny('planilha-'+slug(c.componente||'turma')+'-'+c.codigo+'-'+todayISO()+'.csv',csv,'text/csv;charset=utf-8');
+}
+function exportJson(){ saveAny('backup-tarefas-calculo-'+todayISO()+'.json',JSON.stringify(state,null,1),'application/json'); }
+
+function openRestore(data,fname){
+  var nAl=data.turmas.reduce(function(s,t){return s+(t.alunos||[]).length;},0);
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault(); state=normalize(data); persist(); render(); closeDialog(); toast('Backup restaurado.');
+  }},
+    h('h2',{text:'Restaurar backup'}),
+    h('p',{class:'lead',text:fname}),
+    h('p',{text:'O backup tem '+data.turmas.length+' '+plural(data.turmas.length,'turma','turmas')+', '+nAl+' '+plural(nAl,'aluno','alunos')+', '+data.tarefas.length+' '+plural(data.tarefas.length,'tarefa','tarefas')+' e '+Object.keys(data.registros).length+' registros. Ele vai substituir tudo o que está salvo neste navegador agora.'}),
+    h('div',{class:'foot'},
+      h('button',{type:'submit',class:'btn primary',text:'Substituir dados atuais'}),
+      h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  openDialog(form);
+}
+$('#fileIn').addEventListener('change',function(){
+  var f=this.files[0]; this.value=''; if(!f) return;
+  f.text().then(function(txt){
+    var d=JSON.parse(txt); if(!valid(d)) throw new Error('inválido'); openRestore(d,f.name);
+  }).catch(function(){ toast('Esse arquivo não parece ser um backup deste painel.'); });
+});
+
+/* ---------- PDF em formato de planilha ---------- */
+var JSPDF_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+var AUTOTABLE_URL='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+var META_COMUM={
+  modalidade:'41 - GRADUAÇÃO TECNOLÓGICA - EDUCAÇÃO SUPERIOR',
+  modulo:'20351 - TECNOLOGIA EM PROCESSOS QUÍMICOS',
+  etapa:'21433 - MÓDULO 02',
+  docente:'16326 - MARCOS MONTEIRO DOS SANTOS',
+  turma:'00001/202', horario:'18:30 às 22:30', carga:'16:00 h'
+};
+var META={
+  '276439':{evento:'1035012/20964 - TECNOLOGIA EM PROCESSOS QUÍMICOS', termino:'2028-12-29'},
+  '276432':{evento:'1030851/20964 - TECNOLOGIA EM PROCESSOS QUÍMICOS', termino:'2028-06-30'}
+};
+function metaOf(c){
+  var m={}, k;
+  if(c.meta){ for(k in c.meta) m[k]=c.meta[k]; }
+  else {
+    for(k in META_COMUM) m[k]=META_COMUM[k];
+    var x=META[c.codigo]||{}; for(k in x) m[k]=x[k];
+  }
+  if(!m.evento) m.evento=m.modulo||'';
+  return m;
+}
+function pdfReady(){
+  return !!(window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API && typeof window.jspdf.jsPDF.API.autoTable==='function');
+}
+function loadScript(src){
+  return new Promise(function(res,rej){
+    var s=document.createElement('script'); s.src=src; s.onload=res;
+    s.onerror=function(){ rej(new Error('falha ao carregar '+src)); };
+    document.head.append(s);
+  });
+}
+var pdfLoading=null;
+function loadPdfLibs(){
+  if(pdfReady()) return Promise.resolve();
+  if(!pdfLoading){
+    pdfLoading=((window.jspdf && window.jspdf.jsPDF) ? Promise.resolve() : loadScript(JSPDF_URL))
+      .then(function(){ return pdfReady() ? null : loadScript(AUTOTABLE_URL); })
+      .then(function(){ if(!pdfReady()) throw new Error('autotable indisponível'); })
+      .catch(function(e){ pdfLoading=null; throw e; });
+  }
+  return pdfLoading;
+}
+
+function pdfPlan(c,inclTasks,et){
+  et=et||[1,2];
+  var tk={1:inclTasks?tasksOf(c.id,1):[],2:inclTasks?tasksOf(c.id,2):[]};
+  var numW=12.6, taskW=12.6, alunoW=50, avail=277, nT=0;
+  et.forEach(function(e){ nT+=tk[e].length; });
+  var fixed=8+17+et.length*(5*numW)+(et.indexOf(2)>-1?2*numW:0)+nT*taskW;
+  return {tk:tk,et:et,numW:numW,taskW:taskW,alunoW:alunoW,alunoBreakW:60,breakCols:(fixed+alunoW>avail)};
+}
+
+function buildPdf(c,opts){
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  var PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight(), M=10;
+  var BLUE=[74,112,200], INK=[30,42,74], GRAY=[102,114,143], LINE=[214,221,235], ROWLINE=[172,176,186];
+  function tc(a){ doc.setTextColor(a[0],a[1],a[2]); }
+  function dc(a){ doc.setDrawColor(a[0],a[1],a[2]); }
+  var m=metaOf(c), P=pdfPlan(c,!!opts.tarefas,opts.etapas), tk=P.tk, breakCols=P.breakCols, comRes=(P.et.indexOf(2)>-1);
+  var now=new Date();
+  var emitido=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+  var docenteNome=titleCase(String(m.docente||'').replace(/^\d+\s*-\s*/,''));
+
+  /* cabeçalho da primeira página */
+  var logo=$('.brand img');
+  var lw=36, lh=lw*((logo && logo.naturalWidth) ? logo.naturalHeight/logo.naturalWidth : 134/375);
+  try{ doc.addImage(logo.src,'PNG',M,M,lw,lh); }catch(e){}
+  doc.setFont('helvetica','bold'); tc(INK); doc.setFontSize(10.5);
+  doc.text('SENAI - SERVIÇO NACIONAL DE APRENDIZAGEM INDUSTRIAL',PW/2,M+4,{align:'center'});
+  doc.setFontSize(9);
+  doc.text(m.regional||'DEPARTAMENTO REGIONAL - GO',PW/2,M+9,{align:'center'});
+  doc.text(m.unidade||'FATEC SENAI ROBERTO MANGE',PW/2,M+13.5,{align:'center'});
+  doc.setFontSize(12.5); tc(BLUE);
+  doc.text('PLANILHA DE TAREFAS E AVALIAÇÕES',PW/2,M+20,{align:'center'});
+  dc([170,192,236]); doc.setLineWidth(0.6); doc.line(M,M+23,PW-M,M+23);
+
+  var y0=M+28.5, boxW=PW-2*M, lx=M+3, rx=M+boxW*0.6;
+  function kv(x,y,label,val,maxW){
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); tc(GRAY); doc.text(label,x,y);
+    var w=doc.getTextWidth(label)+1.6, room=Math.max(10,maxW-w), fs=8.5, txt=String(val);
+    doc.setFont('helvetica','normal'); tc(INK); doc.setFontSize(fs);
+    while(doc.getTextWidth(txt)>room && fs>6.5){ fs-=0.5; doc.setFontSize(fs); }
+    if(doc.getTextWidth(txt)>room){ while(txt.length>3 && doc.getTextWidth(txt+'...')>room) txt=txt.slice(0,-1); txt+='...'; }
+    doc.text(txt,x+w,y);
+  }
+  var lW=boxW*0.6-6, rW=boxW*0.4-4;
+  kv(lx,y0,'Curso:',m.evento||c.curso||'',lW);
+  kv(lx,y0+4.7,'Modalidade:',m.modalidade||'',lW);
+  kv(lx,y0+9.4,'Módulo:',m.modulo||'',lW);
+  kv(lx,y0+14.1,'Etapa / componente:',(m.etapa?m.etapa+'   |   ':'')+c.codigo+' - '+(c.componente||'').toUpperCase(),lW);
+  kv(rx,y0,'Docente:',m.docente||'',rW);
+  kv(rx,y0+4.7,'Turma:',m.turma||'',rW);
+  kv(rx,y0+9.4,'Período:',fmtDate(c.inicio)+(m.termino?' a '+fmtDate(m.termino):''),rW);
+  kv(rx,y0+14.1,'Horário:',(m.horario||'')+(m.carga?'   |   Carga horária: '+m.carga:''),rW);
+  dc(LINE); doc.setLineWidth(0.3); doc.roundedRect(M,y0-4.5,boxW,22.5,1.5,1.5);
+
+  function compactHeader(){
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); tc(BLUE);
+    doc.text('PLANILHA DE TAREFAS E AVALIAÇÕES',M,M+2);
+    doc.setFont('helvetica','normal'); tc(GRAY);
+    doc.text(tName(c)+', '+(c.curso||''),PW-M,M+2,{align:'right'});
+    dc(LINE); doc.setLineWidth(0.3); doc.line(M,M+4,PW-M,M+4);
+  }
+
+  /* colunas da planilha */
+  var temAtraso=false, cols=[];
+  function add(o){ cols.push(o); }
+  function taskVal(t,a){
+    var r=rec(t.id,a.id), st=statusOf(t,a.id), f=notaFinal(t,r);
+    if(f!=null){ var late=(st==='atrasada'&&descPct()>0); if(late) temAtraso=true; return fmt(f,2)+(late?'*':''); }
+    return st==='pendente' ? '–' : ({entregue:'Entr.',atrasada:'Atraso',nao:'Não entr.'})[st];
+  }
+  add({lab:'Nº',w:8,al:'center',kind:'id',val:function(a,i){return String(i+1);}});
+  add({lab:'Matrícula',w:17,al:'center',kind:'id',val:function(a){return a.matricula||'';}});
+  add({lab:'Aluno',w:breakCols?P.alunoBreakW:null,al:'left',kind:'id',val:function(a){return a.nome;}});
+  P.et.forEach(function(e){
+    var g=e+'ª etapa';
+    tk[e].forEach(function(t){
+      add({g:g,lab:t.titulo+'\nEntrega '+fmtDate(t.entrega).slice(0,5)+'\nMáx. '+fmt(maxOf(t)),w:P.taskW,al:'center',kind:'task',val:function(a){return taskVal(t,a);}});
+    });
+    add({g:g,lab:'Partic.\n0 a 30',w:P.numW,al:'center',kind:'lv',val:function(a){return f1(partPts(c,a.id,e));}});
+    add({g:g,lab:'Postura\n0 a 20',w:P.numW,al:'center',kind:'lv',val:function(a){return f1(postPts(c,a.id,e));}});
+    add({g:g,lab:'Subtotal\n0 a 100',w:P.numW,al:'center',kind:'sub',val:function(a){return f1(subtotal(c,a.id,e));}});
+    add({g:g,lab:e+'ª AVA\n0 a 100',w:P.numW,al:'center',kind:'ava',val:function(a){return f2(getAv(c.id,a.id)[e===1?'a1':'a2']);}});
+    add({g:g,lab:'Média '+e,w:P.numW,al:'center',kind:'med',val:function(a){return f1(mediaEtapa(c,a.id,e));}});
+  });
+  if(comRes){
+    add({g:'Resultado',lab:'REC',w:P.numW,al:'center',kind:'ava',val:function(a){return f2(getAv(c.id,a.id).rec);}});
+    add({g:'Resultado',lab:'MF',w:P.numW,al:'center',kind:'mf',val:function(a){return f1(calcMF(c,a.id));}});
+  }
+
+  var head1=[], head2=[];
+  cols.forEach(function(col,i){
+    if(!col.g){ head1.push({content:col.lab,rowSpan:2}); return; }
+    var last=head1[head1.length-1];
+    if(last && last.g===col.g){ last.colSpan++; }
+    else head1.push({content:col.g,colSpan:1,g:col.g});
+    head2.push(col.lab);
+  });
+  var headRows=[head1,head2];
+  if(breakCols){
+    headRows=[cols.map(function(col){ return (col.g && col.g!=='Resultado' ? col.g+'\n' : '')+col.lab; })];
+  }
+  var body=c.alunos.map(function(a,i){ return cols.map(function(col){ return col.val(a,i); }); });
+  var cs={};
+  cols.forEach(function(col,i){ cs[i]={halign:col.al}; if(col.w) cs[i].cellWidth=col.w; });
+
+  var HEAD={id:[232,238,250],task:[240,244,251],num:[240,244,251],lv:[255,238,220],sub:[222,232,250],ava:[232,238,250],med:[222,232,250],mf:[214,226,248]};
+  var BODY={lv:[255,249,241],sub:[244,247,253],med:[240,245,253],mf:[232,241,252]};
+
+  doc.autoTable({
+    startY:y0+21,
+    head:headRows, body:body,
+    theme:'grid',
+    margin:{top:18,left:M,right:M,bottom:16},
+    styles:{font:'helvetica',fontSize:8.5,cellPadding:{top:1.8,bottom:1.8,left:1.6,right:1.6},lineColor:ROWLINE,lineWidth:0.15,textColor:INK,valign:'middle',overflow:'linebreak'},
+    headStyles:{fillColor:[240,244,251],textColor:INK,halign:'center',valign:'middle',fontStyle:'bold',fontSize:7,cellPadding:{top:1.8,bottom:1.8,left:0.4,right:0.4},lineColor:[255,255,255],lineWidth:0.25},
+    bodyStyles:{minCellHeight:6.2},
+    alternateRowStyles:{fillColor:[250,251,254]},
+    columnStyles:cs,
+    horizontalPageBreak:breakCols, horizontalPageBreakRepeat:[0,1,2],
+    didParseCell:function(d){
+      var col=cols[d.column.index]; if(!col) return;
+      if(d.section==='head'){
+        if(!breakCols && d.row.index===0 && col.g) d.cell.styles.fillColor=[214,226,248];
+        else d.cell.styles.fillColor=HEAD[col.kind]||[240,244,251];
+      }
+      if(d.section==='body'){
+        if(BODY[col.kind]){ d.cell.styles.fillColor=BODY[col.kind]; }
+        if(col.kind==='sub'||col.kind==='med'||col.kind==='mf') d.cell.styles.fontStyle='bold';
+        if(col.kind==='task'){
+          var tx=String(d.cell.raw);
+          if(tx==='–') d.cell.styles.textColor=[140,150,170];
+          else if(tx==='Não entr.') d.cell.styles.textColor=[176,58,58];
+          else if(tx==='Atraso' || tx.slice(-1)==='*') d.cell.styles.textColor=[138,97,0];
+        }
+      }
+    },
+    didDrawPage:function(d){ if(d.pageNumber>1) compactHeader(); }
+  });
+
+  /* legenda e assinatura */
+  var fy=doc.lastAutoTable.finalY;
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.2); tc(GRAY);
+  var leg=[];
+  leg.push('Subtotal = soma simples das tarefas (até 50 no total) + participação (10 aulas, até 30) + postura acadêmica (10 aulas, até 20), no máximo 100.');
+  leg.push('Média da etapa = (subtotal + AVA) ÷ 2.');
+  if(comRes){
+    leg.push(state.cfg.mfComb==='soma' ? 'MF = Média 1 + Média 2.' : 'MF = média simples da Média 1 e da Média 2.');
+    leg.push(state.cfg.regraMF==='media' ? 'A REC não entra na conta.' : 'A REC substitui a menor média quando for maior.');
+  }
+  if(P.et.some(function(e){return P.tk[e].length;})) leg.push('“–” indica entrega pendente; “Não entr.” indica que não entregou.');
+  if(temAtraso) leg.push('* Entrega com atraso: nota já com desconto de '+fmt(descPct())+'% sobre a nota inserida.');
+  var lines=doc.splitTextToSize(leg.join(' '),PW-2*M);
+  doc.text(lines,M,fy+4.5);
+  var sy=fy+4.5+lines.length*3.1+8;
+  if(sy>PH-16){ doc.addPage(); compactHeader(); sy=40; }
+  dc(INK); doc.setLineWidth(0.3);
+  doc.line(M,sy,M+82,sy); doc.line(PW-M-52,sy,PW-M,sy);
+  doc.setFontSize(8.5); tc(INK);
+  doc.text('Prof. '+docenteNome+', docente',M,sy+4.5);
+  doc.text('Data',PW-M-52,sy+4.5);
+
+  /* rodapé de todas as páginas */
+  var total=doc.getNumberOfPages();
+  for(var p=1;p<=total;p++){
+    doc.setPage(p); doc.setFont('helvetica','normal'); doc.setFontSize(7.5); tc(GRAY);
+    dc(LINE); doc.setLineWidth(0.2); doc.line(M,PH-12,PW-M,PH-12);
+    doc.text((m.unidade||'FATEC SENAI ROBERTO MANGE')+', '+tName(c)+'. Emitido em '+emitido+'.',M,PH-8);
+    doc.text('Página '+p+' de '+total,PW-M,PH-8,{align:'right'});
+  }
+  return doc;
+}
+
+function openPdf(){
+  var c=curTurma(); if(!c){ toast('Importe uma turma primeiro.'); return; }
+  var n=c.alunos.length, nt=tasksOf(c.id).length, v=state.ui.vista||'ambas';
+  function sel(){ var r=form.querySelector('input[name="pEt"]:checked'); var x=r?r.value:'ambas'; return x==='1'?[1]:(x==='2'?[2]:[1,2]); }
+  var chk=h('input',{type:'checkbox',id:'pTasks',disabled:!nt,checked:(nt>0)});
+  var err=h('p',{class:'err',role:'alert'});
+  var go=h('button',{type:'submit',class:'btn primary',text:'Gerar PDF'});
+  var warn=h('p',{class:'hint'});
+  function updWarn(){
+    warn.textContent=pdfPlan(c,chk.checked,sel()).breakCols
+      ? 'Com essas colunas, a planilha não cabe em uma só folha e continua em outras páginas. Desmarque as tarefas ou escolha uma etapa só.' : '';
+  }
+  function radio(val,lab){
+    var id='pEt_'+val;
+    return h('label',{class:'chk2',htmlFor:id,style:'margin-top:6px'},h('input',{type:'radio',name:'pEt',value:val,id:id,checked:v===val,onchange:updWarn}),lab);
+  }
+  var form=h('form',{class:'dlg',onsubmit:function(e){
+    e.preventDefault(); err.textContent='';
+    go.disabled=true; go.textContent='Gerando…';
+    var et=sel();
+    loadPdfLibs().then(function(){
+      var doc=buildPdf(c,{tarefas:chk.checked,etapas:et});
+      var name='planilha-'+slug(c.componente||'turma')+'-'+c.codigo+(et.length===1?'-etapa'+et[0]:'')+'-'+todayISO()+'.pdf';
+      return dlP.then(function(d){
+        if(d) return d.save({filename:name,data:doc.output('blob')}).then(function(){ toast('PDF salvo.'); closeDialog(); },function(er){
+          if(er && er.code==='declined') return;
+          throw er;
+        });
+        if(inClaude){ err.textContent='Salvar arquivos não está disponível nesta visualização.'; return; }
+        doc.save(name); toast('PDF gerado.'); closeDialog();
+      });
+    }).catch(function(){
+      err.textContent='Não consegui gerar o PDF. Confira a conexão com a internet e tente de novo.';
+    }).then(function(){ go.disabled=false; go.textContent='Gerar PDF'; });
+  }},
+    h('h2',{text:'Planilha em PDF'}),
+    h('p',{class:'lead',text:'Turma '+tName(c)+', '+c.curso+', '+n+' '+plural(n,'aluno','alunos')+'. Folha A4 em paisagem, com o cabeçalho do SENAI, os dados da turma e uma linha para assinatura.'}),
+    h('h3',{class:'sub3',text:'Etapas na folha'}),
+    radio('ambas','As duas etapas juntas'), radio('1','Só a 1ª etapa'), radio('2','Só a 2ª etapa'),
+    h('label',{class:'chk2',htmlFor:'pTasks'},chk,'Incluir as colunas de cada tarefa (Lista 1, Lista 2...)'),
+    h('p',{class:'meta',text:nt?'Sem essa opção, a planilha traz participação, postura, subtotal, AVAs e médias.':'Esta turma ainda não tem tarefas.'}),
+    warn, err,
+    h('div',{class:'foot'},go,h('button',{type:'button',class:'btn',onclick:closeDialog,text:'Cancelar'})));
+  updWarn();
+  openDialog(form,'#pTasks');
+}
+
+/* ---------- Eventos e início ---------- */
+$('#q').addEventListener('input',renderGrid);
+$('#onlyPend').addEventListener('change',renderGrid);
+$('#btnNewTask').addEventListener('click',function(){openTask(null);});
+$('#btnAddStu').addEventListener('click',openAddStudents);
+$('#btnCsv').addEventListener('click',exportCsv);
+$('#btnJson').addEventListener('click',exportJson);
+$('#btnRestore').addEventListener('click',function(){$('#fileIn').click();});
+$('#btnPdf').addEventListener('click',openPdf);
+$('#btnImp').addEventListener('click',openImportPdf);
+$('#btnReset').addEventListener('click',openReset);
+twoStep($('#btnUndoReset'),'Desfazer último reset','Confirmar: voltar ao estado de antes do reset',undoReset);
+$('#btnConf').addEventListener('click',function(){ state.ui.conf=!state.ui.conf; closeDialog(); persist(); render(); toast(state.ui.conf?'Modo confidencial ligado. Notas ocultas.':'Modo confidencial desligado.'); });
+$('#btnReorg').addEventListener('click',function(){openReorg(false);});
+$('#btnUndoReorg').addEventListener('click',undoReorg);
+
+/* ---------- Senha, bloqueio e tela cheia ---------- */
+function cyrb53(str){
+  var h1=0xdeadbeef, h2=0x41c6ce57;
+  for(var i=0,ch;i<str.length;i++){ ch=str.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677); }
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);
+}
+var PW_HASH='16h5e0xscvp', SES_KEY='senai-calculo-acesso', started=false, fails=0, lockUntil=0;
+var gate=$('#gate'), gpw=$('#gatePw'), gerr=$('#gateErr');
+$('#gateLogo').src=$('.brand img').src;
+function flag(v){
+  try{
+    if(v===undefined) return sessionStorage.getItem(SES_KEY)==='1';
+    if(v) sessionStorage.setItem(SES_KEY,'1'); else sessionStorage.removeItem(SES_KEY);
+  }catch(e){ return false; }
+}
+function startApp(){
+  if(started) return; started=true;
+  persist(); render(); refreshUndo();
+  if(!state.cfg.reorg){ var pl=reorgPlan(); if(pl && pl.any) setTimeout(function(){ openReorg(true); },300); }
+}
+function showGate(){
+  document.body.classList.add('locked'); gate.hidden=false; gpw.value=''; gerr.textContent='';
+  setTimeout(function(){ gpw.focus(); },30);
+}
+function unlock(){ flag(true); document.body.classList.remove('locked'); gate.hidden=true; startApp(); }
+$('#gateForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var now=Date.now();
+  if(now<lockUntil){ gerr.textContent='Aguarde '+Math.ceil((lockUntil-now)/1000)+' segundos para tentar de novo.'; return; }
+  if(cyrb53('senai-calculo|'+gpw.value.trim())===PW_HASH){ fails=0; unlock(); return; }
+  fails++; gpw.value='';
+  if(fails>=3){ lockUntil=now+10000*(fails-2); gerr.textContent='Senha incorreta. Aguarde '+(10*(fails-2))+' segundos para tentar de novo.'; }
+  else gerr.textContent='Senha incorreta.';
+  gpw.focus();
+});
+$('#btnLock').addEventListener('click',function(){ closePop(false); closeDialog(); flag(false); showGate(); });
+
+function fsEl(){ return document.fullscreenElement || document.webkitFullscreenElement; }
+function updFs(){
+  $('#btnFs').textContent=fsEl()?'Sair da tela cheia':'Tela cheia';
+  document.documentElement.classList.toggle('fs',!!fsEl());
+}
+$('#btnFs').addEventListener('click',function(){
+  var root=document.documentElement;
+  if(fsEl()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); return; }
+  var req=root.requestFullscreen||root.webkitRequestFullscreen;
+  if(!req){ toast('Este navegador não permite tela cheia aqui. Tente a tecla F11.'); return; }
+  var p; try{ p=req.call(root); }catch(e){ toast('A tela cheia foi bloqueada. Tente a tecla F11.'); return; }
+  if(p && p.catch) p.catch(function(){ toast('A tela cheia foi bloqueada. Tente a tecla F11.'); });
+});
+document.addEventListener('fullscreenchange',updFs);
+document.addEventListener('webkitfullscreenchange',updFs);
+
+/* ---------- Nuvem (Firebase): entrar com Google e sincronizar entre aparelhos ---------- */
+/* PARA ATIVAR: no console do Firebase, abra Configurações do projeto > Seus apps > Web e cole os valores abaixo.
+   Esses valores NÃO são segredo. Quem protege os dados são o login com Google e as regras do Firestore. */
+var FIREBASE_CONFIG = {
+  apiKey: 'COLE_AQUI',
+  authDomain: 'COLE_AQUI',
+  projectId: 'COLE_AQUI',
+  appId: 'COLE_AQUI'
+};
+var FB_BASE = 'https://www.gstatic.com/firebasejs/10.13.2/';
+var CLOUD_META_KEY = KEY+'-nuvem', CLOUD_BAK_KEY = KEY+'-antes-da-nuvem';
+var CLOUD_LABEL = {off:'Nuvem', loading:'Conectando…', signedout:'Entrar na nuvem', syncing:'Sincronizando…', ok:'Sincronizado', offline:'Sem conexão', conflict:'Conferir nuvem', error:'Erro na nuvem'};
+
+function cloudMetaLoad(){
+  try{ var m=JSON.parse(localStorage.getItem(CLOUD_META_KEY)||'null'); if(m && typeof m==='object') return m; }catch(e){}
+  return {uid:'', rev:0, hash:'', at:0, edit:0};
+}
+var CLOUD = {
+  st:'off', msg:'', user:null, auth:null, db:null, ref:null, refPrev:null, unsub:null,
+  meta:cloudMetaLoad(), timer:null, retryT:null, busy:false, paused:false, remote:undefined, initing:false, lastHash:''
+};
+function cloudConfigured(){
+  var c=FIREBASE_CONFIG;
+  return !!(c && c.apiKey && c.authDomain && c.projectId && (c.apiKey+c.authDomain+c.projectId).indexOf('COLE_AQUI')<0);
+}
+function cloudMetaSave(){ try{ localStorage.setItem(CLOUD_META_KEY, JSON.stringify(CLOUD.meta)); }catch(e){} }
+
+/* O que vai para a nuvem: tudo, menos a “tela” (curso, turma e vista escolhidos), que é própria de cada aparelho */
+function syncJson(){
+  var o={}; Object.keys(state).forEach(function(k){ if(k!=='ui') o[k]=state[k]; });
+  return JSON.stringify(o);
+}
+function stHash(){ return cyrb53(syncJson()); }
+function cloudDirty(){ return stHash()!==CLOUD.meta.hash; }
+function isPristine(s){
+  return !s.tarefas.length && !Object.keys(s.registros||{}).length && !Object.keys(s.aval||{}).length &&
+    !Object.keys(s.aulas||{}).length && s.turmas.every(function(t){ return !(t.alunos||[]).length; });
+}
+function resumoTxt(s){
+  var nAl=s.turmas.reduce(function(n,t){ return n+(t.alunos||[]).length; },0), nL=Object.keys(s.registros||{}).length;
+  return s.turmas.length+' '+plural(s.turmas.length,'turma','turmas')+' · '+nAl+' '+plural(nAl,'aluno','alunos')+' · '+
+    s.tarefas.length+' '+plural(s.tarefas.length,'tarefa','tarefas')+' · '+nL+' '+plural(nL,'lançamento','lançamentos');
+}
+function tsIso(ts){ try{ return ts && ts.toDate ? ts.toDate().toISOString() : ''; }catch(e){ return ''; } }
+
+function dataNote(){
+  var p=$('.data p'); if(!p || inClaude) return;
+  p.textContent = CLOUD.user
+    ? 'Os registros ficam neste navegador e são sincronizados com a sua conta na nuvem. Mesmo assim, baixe um backup de vez em quando.'
+    : 'Os registros ficam salvos neste navegador. Baixe um backup de vez em quando para não perder nada ao trocar de computador.';
+}
+function setStatus(st,msg){
+  var changed=(CLOUD.st!==st || CLOUD.msg!==(msg||''));
+  CLOUD.st=st; CLOUD.msg=msg||'';
+  var b=$('#btnCloud'); if(!b) return;
+  b.dataset.st=st; $('#cloudTxt').textContent=CLOUD_LABEL[st]||'Nuvem';
+  b.setAttribute('aria-label','Nuvem: '+(CLOUD_LABEL[st]||''));
+  dataNote();
+  if(changed && dlg.open && dlg.querySelector('#cloudPanel') && !dlg.querySelector('#cloudPanel[data-fixed]')) openCloudPanel();
+}
+
+/* ----- iniciar: carrega o SDK do Firebase só se a configuração foi preenchida ----- */
+function cloudInit(){
+  if(!cloudConfigured()){ setStatus('off'); return; }
+  if(CLOUD.initing || CLOUD.auth) return;
+  CLOUD.initing=true; setStatus('loading');
+  [FB_BASE+'firebase-app-compat.js', FB_BASE+'firebase-auth-compat.js', FB_BASE+'firebase-firestore-compat.js']
+    .reduce(function(p,src){ return p.then(function(){ return loadScript(src); }); }, Promise.resolve())
+    .then(function(){
+      if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      CLOUD.db=firebase.firestore();
+      try{ CLOUD.db.settings({experimentalAutoDetectLongPolling:true}); }catch(e){}
+      CLOUD.auth=firebase.auth();
+      CLOUD.initing=false;
+      CLOUD.auth.getRedirectResult().catch(cloudAuthError);
+      CLOUD.auth.onAuthStateChanged(cloudOnUser);
+    })
+    .catch(function(){
+      CLOUD.initing=false;
+      setStatus('offline','Não foi possível carregar o Firebase. Sem internet? O painel segue funcionando neste aparelho.');
+    });
+}
+function cloudOnUser(u){
+  CLOUD.user=u||null;
+  if(CLOUD.unsub){ try{ CLOUD.unsub(); }catch(e){} CLOUD.unsub=null; }
+  CLOUD.remote=undefined; CLOUD.busy=false; CLOUD.paused=false;
+  clearTimeout(CLOUD.timer); clearTimeout(CLOUD.retryT);
+  if(!u){ setStatus('signedout'); return; }
+  if(CLOUD.meta.uid!==u.uid){ CLOUD.meta={uid:u.uid, rev:0, hash:'', at:0, edit:CLOUD.meta.edit||0}; cloudMetaSave(); }
+  var base=CLOUD.db.collection('usuarios').doc(u.uid).collection('dados');
+  CLOUD.ref=base.doc('notas'); CLOUD.refPrev=base.doc('notas_anterior');
+  setStatus('syncing');
+  CLOUD.unsub=CLOUD.ref.onSnapshot(function(snap){
+    if(snap.metadata && snap.metadata.fromCache){ if(CLOUD.remote===undefined) setStatus('offline'); return; }
+    CLOUD.remote = snap.exists ? snap.data() : null;
+    cloudReconcile();
+  }, cloudFail);
+}
+
+/* ----- decidir o que fazer quando a nuvem e este aparelho podem estar diferentes ----- */
+function cloudReconcile(){
+  if(!CLOUD.user || CLOUD.busy || CLOUD.remote===undefined) return;
+  if(dlg.open && !dlg.querySelector('#cloudPanel')) return;      /* espera fechar o diálogo aberto */
+  if(CLOUD.paused){ setStatus('conflict'); return; }
+  var d=CLOUD.remote, m=CLOUD.meta, dirty=cloudDirty();
+  if(d===null){
+    if(m.rev>0){ m.rev=0; cloudMetaSave(); }                     /* a nuvem foi esvaziada: reenvia */
+    if(isPristine(state)){ setStatus('ok'); return; }
+    cloudPush(true); return;
+  }
+  if(d.rev===m.rev){
+    if(dirty) cloudPush(); else setStatus('ok');
+    return;
+  }
+  if(!dirty || isPristine(state)){ cloudAdopt(d); return; }
+  cloudConflict(d);
+}
+function cloudAdopt(d){
+  var s=null; try{ s=JSON.parse(d.json); }catch(e){}
+  if(!valid(s)){ CLOUD.paused=true; setStatus('error','A versão que está na nuvem está ilegível. Nada foi alterado neste aparelho.'); return; }
+  if(!isPristine(state)){ try{ localStorage.setItem(CLOUD_BAK_KEY, JSON.stringify(state)); }catch(e){} }
+  closeDialog();
+  s.ui=state.ui;                                                  /* a “tela” escolhida é de cada aparelho */
+  state=normalize(s);
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); storageOk=true; }catch(e){ storageOk=false; }
+  CLOUD.paused=false;
+  CLOUD.meta.rev=d.rev; CLOUD.meta.hash=stHash(); CLOUD.meta.at=Date.now(); CLOUD.lastHash=CLOUD.meta.hash; cloudMetaSave();
+  renderBanner(); if(started) render();
+  setStatus('ok'); toast('Dados atualizados a partir da nuvem.');
+}
+function cloudConflict(d){
+  var rs=null; try{ rs=JSON.parse(d.json); }catch(e){}
+  if(!valid(rs)){ CLOUD.paused=true; setStatus('error','A versão que está na nuvem está ilegível. Nada foi alterado neste aparelho.'); return; }
+  CLOUD.paused=true; setStatus('conflict');
+  var quando=tsIso(d.atualizadoEm), aqui=CLOUD.meta.edit ? new Date(CLOUD.meta.edit).toISOString() : '';
+  var form=h('div',{class:'dlg',id:'cloudPanel','data-fixed':'1'},
+    h('h2',{text:'Este aparelho e a nuvem têm dados diferentes'}),
+    h('p',{class:'lead',text:'Escolha qual versão vale. A outra fica guardada como cópia de segurança, então nada se perde.'}),
+    h('div',{class:'cmp'},
+      h('div',null, h('h3',{text:'Na nuvem'}), h('p',{text:resumoTxt(rs)}), h('p',{text:quando ? 'Atualizada em '+fmtDateTime(quando) : 'Data desconhecida'})),
+      h('div',null, h('h3',{text:'Neste aparelho'}), h('p',{text:resumoTxt(state)}), h('p',{text:aqui ? 'Última alteração em '+fmtDateTime(aqui) : 'Data desconhecida'}))),
+    h('div',{class:'foot'},
+      h('button',{type:'button',class:'btn primary',text:'Usar a versão da nuvem',onclick:function(){ CLOUD.paused=false; cloudAdopt(d); }}),
+      h('button',{type:'button',class:'btn',text:'Usar a deste aparelho',onclick:function(){
+        CLOUD.meta.rev=d.rev; cloudMetaSave(); CLOUD.remote=d; CLOUD.paused=false; closeDialog(); cloudPush(true);
+      }}),
+      h('button',{type:'button',class:'btn',text:'Decidir depois',onclick:closeDialog})));
+  openDialog(form);
+}
+
+/* ----- enviar para a nuvem (com trava: só grava se ninguém mais gravou desde a última leitura) ----- */
+function cloudSchedule(){ clearTimeout(CLOUD.timer); CLOUD.timer=setTimeout(function(){ CLOUD.timer=null; cloudPush(); },1500); }
+function cloudPush(force){
+  if(!CLOUD.user || CLOUD.busy || CLOUD.paused || CLOUD.remote===undefined) return;
+  clearTimeout(CLOUD.timer); clearTimeout(CLOUD.retryT);
+  if(!force && !cloudDirty()){ setStatus('ok'); return; }
+  if(navigator.onLine===false){ setStatus('offline'); return; }
+  var json=syncJson(), hash=cyrb53(json), expect=CLOUD.meta.rev;
+  var bytes=(typeof Blob!=='undefined') ? new Blob([json]).size : json.length;
+  if(bytes>950000){ setStatus('error','Os dados chegaram perto do limite de 1 MB por documento do Firestore. Precisamos dividir por turma.'); return; }
+  CLOUD.busy=true; setStatus('syncing');
+  var FV=firebase.firestore.FieldValue;
+  CLOUD.db.runTransaction(function(tx){
+    return tx.get(CLOUD.ref).then(function(snap){
+      var cur=snap.exists ? snap.data() : null, curRev=cur ? (cur.rev||0) : 0;
+      if(curRev!==expect){ var e=new Error('conflito'); e.conflict=true; e.remote=cur; throw e; }
+      if(cur && cur.json) tx.set(CLOUD.refPrev,{json:cur.json, rev:curRev, copiadoEm:FV.serverTimestamp()});
+      tx.set(CLOUD.ref,{json:json, rev:curRev+1, atualizadoEm:FV.serverTimestamp(), tamanho:bytes});
+      return curRev+1;
+    });
+  }).then(function(rev){
+    CLOUD.busy=false;
+    CLOUD.meta.rev=rev; CLOUD.meta.hash=hash; CLOUD.meta.at=Date.now(); cloudMetaSave();
+    if(!CLOUD.remote || CLOUD.remote.rev<rev) CLOUD.remote={json:json, rev:rev, atualizadoEm:null};
+    if(cloudDirty()) cloudSchedule();
+    cloudReconcile();
+  }).catch(function(e){
+    CLOUD.busy=false;
+    if(e && e.conflict){
+      if(e.remote===null){ CLOUD.meta.rev=0; cloudMetaSave(); }
+      CLOUD.remote=e.remote;
+      cloudReconcile(); return;
+    }
+    cloudFail(e);
+  });
+}
+function cloudFail(e){
+  var c=(e && e.code)||'';
+  if(c==='permission-denied'){
+    setStatus('error','A nuvem recusou o acesso. Confira se você entrou com a conta autorizada e se as regras do Firestore foram publicadas.'); return;
+  }
+  if(c==='unavailable' || c==='deadline-exceeded' || c==='cancelled' || /offline|network/i.test((e&&e.message)||'')){
+    setStatus('offline'); CLOUD.retryT=setTimeout(function(){ if(cloudDirty()) cloudPush(); },20000); return;
+  }
+  setStatus('error','Não consegui sincronizar ('+(c||'erro desconhecido')+'). Tentarei de novo em instantes.');
+  CLOUD.retryT=setTimeout(function(){ if(cloudDirty()) cloudPush(); },60000);
+}
+/* chamado por persist() a cada gravação local */
+function cloudTouch(){
+  if(typeof CLOUD==='undefined' || !CLOUD || !CLOUD.meta) return;
+  var hs=stHash();
+  if(hs!==CLOUD.lastHash){ CLOUD.lastHash=hs; CLOUD.meta.edit=Date.now(); cloudMetaSave(); }
+  if(!CLOUD.user || CLOUD.remote===undefined || CLOUD.paused) return;
+  if(hs!==CLOUD.meta.hash){ if(!CLOUD.busy) setStatus(navigator.onLine===false ? 'offline' : 'syncing'); cloudSchedule(); }
+}
+
+/* ----- entrar, sair, painel ----- */
+var AUTH_MSG = {
+  'auth/unauthorized-domain':'Este endereço ainda não foi autorizado no Firebase. Em Authentication > Configurações > Domínios autorizados, adicione o endereço em que esta página está publicada.',
+  'auth/network-request-failed':'Sem conexão com a internet.',
+  'auth/operation-not-allowed':'O login com Google não está ativado no projeto (Authentication > Método de login).'
+};
+function cloudAuthError(e){
+  var c=(e && e.code)||'';
+  if(c==='auth/popup-closed-by-user' || c==='auth/cancelled-popup-request') return;
+  setStatus(CLOUD.user?CLOUD.st:'signedout'); toast(AUTH_MSG[c] || 'Não foi possível entrar ('+(c||'erro')+').');
+}
+function cloudSignIn(){
+  if(!CLOUD.auth){ toast('A nuvem ainda está conectando. Tente de novo em alguns segundos.'); return; }
+  var p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'});
+  CLOUD.auth.signInWithPopup(p).then(function(){ closeDialog(); }, function(e){
+    var c=(e && e.code)||'';
+    if(c==='auth/popup-blocked' || c==='auth/operation-not-supported-in-this-environment' || c==='auth/web-storage-unsupported'){
+      CLOUD.auth.signInWithRedirect(p); return;
+    }
+    cloudAuthError(e);
+  });
+}
+function cloudSyncNow(){
+  if(!CLOUD.user){ return; }
+  if(CLOUD.paused && CLOUD.remote){ closeDialog(); cloudConflict(CLOUD.remote); return; }
+  if(!CLOUD.unsub){ cloudOnUser(CLOUD.user); return; }
+  if(cloudDirty()){ cloudPush(); toast('Enviando alterações…'); } else { toast('Tudo em dia.'); }
+}
+function cloudWipe(){
+  var keys=[KEY, KEY+'-t', KEY+'-antes-da-v4', SNAP_KEY, SNAP_RESET, CLOUD_BAK_KEY, CLOUD_META_KEY];
+  clearTimeout(CLOUD.timer); clearTimeout(CLOUD.retryT); CLOUD.paused=true;
+  function done(){
+    keys.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    try{ sessionStorage.removeItem(SES_KEY); }catch(e){}
+    location.reload();
+  }
+  if(CLOUD.auth) CLOUD.auth.signOut().then(done,done); else done();
+}
+function openCloudWipe(){
+  var pend=!!CLOUD.user && cloudDirty();
+  var form=h('div',{class:'dlg',id:'cloudPanel','data-fixed':'1'},
+    h('h2',{text:'Sair e apagar os dados deste aparelho?'}),
+    h('p',{class:'lead',text:'Use isto em computador compartilhado, como o da escola. Os alunos e as notas saem deste navegador e continuam guardados na nuvem, na sua conta.'}),
+    pend ? h('p',{class:'hint',text:'Atenção: há alterações que ainda não foram enviadas para a nuvem. Elas serão perdidas.'}) : null,
+    h('div',{class:'foot'},
+      h('button',{type:'button',class:'btn danger',text:'Sair e apagar',onclick:cloudWipe}),
+      h('button',{type:'button',class:'btn',text:'Cancelar',onclick:closeDialog})));
+  openDialog(form);
+}
+function openCloudPanel(){
+  var st=CLOUD.st, u=CLOUD.user, kids=[h('h2',{text:'Nuvem'})];
+  function P(t,cls){ kids.push(h('p',{class:cls||'lead',text:t})); }
+  if(st==='off'){
+    P('A sincronização entre aparelhos ainda não está ativada neste arquivo.');
+    P('Para ativar, crie um projeto no Firebase e cole a configuração em FIREBASE_CONFIG, no começo do bloco “Nuvem” do script. Enquanto isso, os registros ficam só neste navegador: baixe backups com frequência.','hint');
+  } else if(st==='loading'){
+    P('Conectando ao Firebase…');
+  } else if(!u){
+    if(st==='offline' && CLOUD.msg) P(CLOUD.msg,'hint');
+    P('Entre com a sua conta Google para guardar as notas na nuvem e abri-las em qualquer aparelho, com os mesmos dados.');
+    kids.push(h('div',{class:'foot'},
+      h('button',{type:'button',class:'btn primary',text:'Entrar com Google',onclick:cloudSignIn}),
+      h('button',{type:'button',class:'btn',text:'Fechar',onclick:closeDialog})));
+  } else {
+    P('Conectado como '+(u.email||'sua conta')+'.');
+    var line={ok:'Tudo sincronizado.', syncing:'Enviando ou conferindo as alterações…',
+      offline:'Sem conexão. As alterações ficam guardadas neste aparelho e seguem para a nuvem quando a internet voltar.',
+      conflict:'Este aparelho e a nuvem têm versões diferentes. Resolva para continuar sincronizando.',
+      error:CLOUD.msg||'Houve um erro na sincronização.'}[st]||'';
+    if(line) kids.push(h('p',{class:(st==='error'||st==='conflict'||st==='offline')?'hint':'lead',text:line}));
+    if(CLOUD.meta.at) P('Última sincronização: '+fmtDateTime(new Date(CLOUD.meta.at).toISOString())+'.');
+    P('Antes de trocar uma versão pela outra, o painel guarda uma cópia da anterior, na nuvem e neste aparelho.','hint');
+    kids.push(h('div',{class:'foot'},
+      h('button',{type:'button',class:'btn primary',text:st==='conflict'?'Resolver agora':'Sincronizar agora',onclick:cloudSyncNow}),
+      h('button',{type:'button',class:'btn',text:'Sair',onclick:function(){ if(CLOUD.auth) CLOUD.auth.signOut(); closeDialog(); }}),
+      h('span',{class:'grow'}),
+      h('button',{type:'button',class:'btn danger',text:'Sair e apagar deste aparelho',onclick:openCloudWipe})));
+  }
+  openDialog(h.apply(null,['div',{class:'dlg',id:'cloudPanel'}].concat(kids)));
+}
+$('#btnCloud').addEventListener('click',openCloudPanel);
+dlg.addEventListener('close',function(){ setTimeout(cloudReconcile,50); });
+window.addEventListener('online',function(){
+  if(!CLOUD.auth){ cloudInit(); return; }
+  if(CLOUD.user){ if(!CLOUD.unsub) cloudOnUser(CLOUD.user); else if(cloudDirty()) cloudSchedule(); }
+});
+window.addEventListener('offline',function(){ if(CLOUD.user) setStatus('offline'); });
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden' && CLOUD.user && CLOUD.remote!==undefined && !CLOUD.busy && !CLOUD.paused && cloudDirty()) cloudPush();
+});
+CLOUD.lastHash=stHash();
+cloudInit();
+
+if(flag()) unlock(); else showGate();
+})();
+</script>
+</body>
+</html>
