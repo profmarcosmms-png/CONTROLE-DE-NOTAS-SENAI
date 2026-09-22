@@ -1,0 +1,30 @@
+<!--
+  ============================================================
+  TRECHO 1 — cole dentro de <head>...</head> do seu index.html
+  (pode ser logo depois da tag <meta name="viewport" ...>)
+  ============================================================
+-->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#105AC7">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Notas SENAI">
+
+
+<!--
+  ============================================================
+  TRECHO 2 — cole logo antes de </body>, no final do arquivo
+  ============================================================
+-->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("Não foi possível registrar o service worker:", err);
+      });
+    });
+  }
+</script>

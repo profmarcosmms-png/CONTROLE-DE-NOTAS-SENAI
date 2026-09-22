@@ -1,0 +1,19 @@
+{
+  "name": "Controle de Notas SENAI",
+  "short_name": "Notas SENAI",
+  "description": "Controle de notas e tarefas das turmas do SENAI (Cálculo, Física, Física Aplicada)",
+  "id": "/CONTROLE-DE-NOTAS-SENAI/",
+  "start_url": "./?fonte=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#105AC7",
+  "theme_color": "#105AC7",
+  "orientation": "any",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
