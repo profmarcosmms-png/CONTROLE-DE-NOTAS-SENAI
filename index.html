@@ -328,6 +328,14 @@ td.mask{color:var(--ink-2);letter-spacing:.18em;text-align:center;user-select:no
 .dlg .cmp p{margin:2px 0;font-size:14px;color:var(--ink-2)}
 @media (max-width:560px){.dlg .cmp{grid-template-columns:1fr}}
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#105AC7">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Notas SENAI">
 </head>
 <body class="locked">
 <div class="wrap">
@@ -2718,6 +2726,15 @@ cloudInit();
 
 if(flag()) unlock(); else showGate();
 })();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("Não foi possível registrar o service worker:", err);
+      });
+    });
+  }
 </script>
 </body>
 </html>
